@@ -1,4 +1,6 @@
-#Escrituração Contábil Digital - ECD
+# Escrituração Contábil Digital - ECD
+
+
 
 A Escrituração Contábil Digital - ECD - foi instituída para fins fiscais e previdenciários e deverá ser 
 transmitida pelas pessoas jurídicas a ela obrigadas, ao Sistema Público de Escrituração Digital (Sped), 
@@ -29,3 +31,18 @@ and will be deemed valid after the confirmation of Receipt of the file containin
   | I155 | Detalhes dos saldos periódicos |
   
   
+  # Configuração de Ambiente
+  VM Options
+  
+  Use absolute path or environment variable 
+  export PATH_TO_FX=C:\Program Files\Java\javafx-sdk-11.0.2\lib
+  
+  Ex.: $PATH_TO_FX or "C:\Program Files\Java\javafx-sdk-11.0.2\lib"
+  
+  * --module-path $PATH_TO_FX
+  * --add-modules javafx.controls,javafx.fxml
+  * --add-exports javafx.graphics/com.sun.javafx.util=ALL-UNNAMED
+  * --add-exports javafx.base/com.sun.javafx.reflect=ALL-UNNAMED
+  * --add-exports javafx.base/com.sun.javafx.beans=ALL-UNNAMED
+  * --add-exports javafx.graphics/com.sun.glass.utils=ALL-UNNAMED
+  * --add-exports javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED
