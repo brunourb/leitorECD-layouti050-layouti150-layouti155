@@ -64,11 +64,19 @@ public class I050 {
     List<I050> subContas = new ArrayList<I050>();
     
     public boolean hasSubConta(){
-        return !"".equals(this.codigoContaSintetica);
+        return !"".equals(this.getCodigoContaSintetica());
     }
     
-    public boolean isChild(String codigo){
-        return this.codigoContaSintetica.equals(codigo);
+    public boolean isChild(String codigoContaAnaliticaParent){
+        return this.getCodigoContaSintetica().equals(codigoContaAnaliticaParent);
+    }
+
+    public String recursiveWalk(){
+        StringBuilder sb = new StringBuilder();
+        if (this.getSubContas()!=null && this.getSubContas().size() > 0) {
+            this.getSubContas().forEach(i1 -> sb.append(String.format("\n\t%s %s %s %s", i1.getCodigoContaAnalitica(), i1.getCodigoContaSintetica(), i1.getNomeConta(), i1.recursiveWalk())));
+        }
+        return sb.toString();
     }
     
 }

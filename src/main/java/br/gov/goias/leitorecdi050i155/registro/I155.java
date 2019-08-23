@@ -5,12 +5,15 @@
  */
 package br.gov.goias.leitorecdi050i155.registro;
 
+import lombok.Data;
+
 import java.math.BigDecimal;
 
 /**
  *
  * @author admin
  */
+@Data
 public class I155 {
     
     /**
