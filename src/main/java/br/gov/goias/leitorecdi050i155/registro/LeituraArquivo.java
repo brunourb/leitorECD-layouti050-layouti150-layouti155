@@ -21,13 +21,12 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- *
  * @author admin
  */
 public class LeituraArquivo {
 
 
-    public static void main(String[] args){
+    public static void main(String[] args) {
 
         File myDir = new File("D:\\ecd");
 
@@ -41,80 +40,88 @@ public class LeituraArquivo {
 
     }
 
-    static String[] formatData(String s){
+    static String[] formatData(String s) {
         return s.split("\\|");
     }
 
-    static boolean filterData(String[] s, String value){
+    static boolean filterData(String[] s, String value) {
         return value.equals(s[5]);
     }
 
-    static I050 extract(String[] i, List<I050> lista){
-        List<I050> subContas = lista.stream().filter(n->n.isChild(i[6])).collect(Collectors.toList());
-            return I050.builder()
-                    .dataInclusao(i[2])
-                    .codigoNaturezaConta(i[3])
-                    .indTipoConta(i[4])
-                    .nivelConta(i[5])
-                    .codigoContaAnalitica(i[6])
-                    .codigoContaSintetica(i[7])
-                    .nomeConta(i[8])
-                    .subContas(subContas).build();
+    static I050 builder(String[] i) {
+        return I050.builder()
+                .dataInclusao(i[2])
+                .codigoNaturezaConta(i[3])
+                .indTipoConta(i[4])
+                .nivelConta(i[5])
+                .codigoContaAnalitica(i[6])
+                .codigoContaSintetica(i[7])
+                .nomeConta(i[8])
+                .build();
     }
 
-    public static void example(File myDir, String[] RESTRICAO_ARQUIVOS){
+    static I050 extract(String[] i, List<I050> lista) {
+        List<I050> subContas = lista.stream().filter(n -> n.isChild(i[6])).collect(Collectors.toList());
+        return I050.builder()
+                .dataInclusao(i[2])
+                .codigoNaturezaConta(i[3])
+                .indTipoConta(i[4])
+                .nivelConta(i[5])
+                .codigoContaAnalitica(i[6])
+                .codigoContaSintetica(i[7])
+                .nomeConta(i[8])
+                .subContas(subContas).build();
+    }
+
+    static ECD000 extract(String[] data) {
+        return ECD000.builder()
+                .dataInicial(data[3])
+                .dataFinal(data[4])
+                .nomeEmpresa(data[5])
+                .cnpj(data[6])
+                .uf(data[7])
+                .ie(data[8])
+                .codigoMunicipioIBGE(data[9])
+                .im(data[10]).build();
+    }
+
+    public static void example(File myDir, String[] RESTRICAO_ARQUIVOS) {
+        final String FILTER_I050 = "I050";
         Collection<File> files = FileUtils.listFiles(myDir, RESTRICAO_ARQUIVOS, true);
         Stream<File> stream = files.parallelStream();
-        stream.forEachOrdered(file-> {
+        stream.forEachOrdered(file -> {
             try {
+
                 List<String> lines = FileUtils.readLines(file, StandardCharsets.ISO_8859_1.name());
 
                 String[] data = lines.get(0).split("\\|");
-                ECD000 empresa = ECD000.builder()
-                        .dataInicial(data[3])
-                        .dataFinal(data[4])
-                        .nomeEmpresa(data[5])
-                        .cnpj(data[6])
-                        .uf(data[7])
-                        .ie(data[8])
-                        .codigoMunicipioIBGE(data[9])
-                        .im(data[10]).build();
+                ECD000 empresa = extract(data);
 
-
-                List<I050> nivel4 = lines.stream().filter(l-> l.contains("I050"))
-                        .map(s -> formatData(s)).filter(s1-> filterData(s1,"4"))
-                        .map(i-> I050.builder()
-                                .dataInclusao(i[2])
-                                .codigoNaturezaConta(i[3])
-                                .indTipoConta(i[4])
-                                .nivelConta(i[5])
-                                .codigoContaAnalitica(i[6])
-                                .codigoContaSintetica(i[7])
-                                .nomeConta(i[8])
-                                .build())
+                List<I050> nivel4 = lines.stream().filter(l -> l.contains(FILTER_I050))
+                        .map(s -> formatData(s)).filter(s1 -> filterData(s1, "4"))
+                        .map(i -> builder(i))
                         .collect(Collectors.toList());
 
+                List<I050> nivel3 = lines.stream().filter(l -> l.contains(FILTER_I050))
+                        .map(s -> formatData(s)).filter(s1 -> filterData(s1, "3"))
+                        .map(i -> extract(i, nivel4)).collect(Collectors.toList());
 
-                List<I050> nivel3 = lines.stream().filter(l-> l.contains("I050"))
-                        .map(s -> formatData(s)).filter(s1-> filterData(s1,"3"))
-                        .map(i-> extract(i,nivel4)).collect(Collectors.toList());
-
-                List<I050> nivel2 = lines.stream().filter(l-> l.contains("I050"))
-                        .map(s -> formatData(s)).filter(s1-> filterData(s1,"2"))
-                        .map(i-> extract(i, nivel3)).collect(Collectors.toList());
+                List<I050> nivel2 = lines.stream().filter(l -> l.contains(FILTER_I050))
+                        .map(s -> formatData(s)).filter(s1 -> filterData(s1, "2"))
+                        .map(i -> extract(i, nivel3)).collect(Collectors.toList());
 
 
-                List<I050> nivel1 = lines.stream().filter(l-> l.contains("I050"))
-                        .map(s ->formatData(s)).filter(s1-> filterData(s1,"1"))
-                        .map(i-> extract(i,nivel2)).collect(Collectors.toList());
+                List<I050> nivel1 = lines.stream().filter(l -> l.contains(FILTER_I050))
+                        .map(s -> formatData(s)).filter(s1 -> filterData(s1, "1"))
+                        .map(i -> extract(i, nivel2)).collect(Collectors.toList());
 
-                nivel1.forEach(i-> {
-                            System.out.printf("%s %s %s %s %s \n",
-                                    i.getNivelConta(),
-                                    i.getCodigoContaAnalitica(),
-                                    i.getCodigoContaSintetica(),
-                                    i.getNomeConta(),
-                                    i.recursiveWalk("\t"));
+                nivel1.forEach(i -> {
+                    System.out.printf("%s %s %s %s %s \n",
+                            i.getNivelConta(),
+                            i.getCodigoContaAnalitica(),
+                            i.getCodigoContaSintetica(),
+                            i.getNomeConta(),
+                            i.recursiveWalk("\t"));
                 });
 
             } catch (IOException ex) {
@@ -124,7 +131,7 @@ public class LeituraArquivo {
     }
 
 
-    public static void loadFiles(File myDir, String[] RESTRICAO_ARQUIVOS){
+    public static void loadFiles(File myDir, String[] RESTRICAO_ARQUIVOS) {
 
         Collection<File> files = FileUtils.listFiles(myDir, RESTRICAO_ARQUIVOS, true);
         Stream<File> stream = files.parallelStream();
@@ -146,9 +153,9 @@ public class LeituraArquivo {
                             .im(data[10]).build();
 
 
-                    List<I050> nivel1 = lines.stream().filter(l-> l.contains("I050"))
-                            .map(s -> s.split("\\|")).filter(s1->"1".equals(s1[5]))
-                            .map(i-> I050.builder()
+                    List<I050> nivel1 = lines.stream().filter(l -> l.contains("I050"))
+                            .map(s -> s.split("\\|")).filter(s1 -> "1".equals(s1[5]))
+                            .map(i -> I050.builder()
                                     .dataInclusao(i[2])
                                     .codigoNaturezaConta(i[3])
                                     .indTipoConta(i[4])
@@ -160,9 +167,9 @@ public class LeituraArquivo {
                                     .build())
                             .collect(Collectors.toList());
 
-                    List<I050> nivel2 = lines.stream().filter(l-> l.contains("I050"))
-                            .map(s -> s.split("\\|")).filter(s1->"2".equals(s1[5]))
-                            .map(i-> I050.builder()
+                    List<I050> nivel2 = lines.stream().filter(l -> l.contains("I050"))
+                            .map(s -> s.split("\\|")).filter(s1 -> "2".equals(s1[5]))
+                            .map(i -> I050.builder()
                                     .dataInclusao(i[2])
                                     .codigoNaturezaConta(i[3])
                                     .indTipoConta(i[4])
@@ -174,9 +181,9 @@ public class LeituraArquivo {
                                     .build())
                             .collect(Collectors.toList());
 
-                    List<I050> nivel3 = lines.stream().filter(l-> l.contains("I050"))
-                            .map(s -> s.split("\\|")).filter(s1->"3".equals(s1[5]))
-                            .map(i-> I050.builder()
+                    List<I050> nivel3 = lines.stream().filter(l -> l.contains("I050"))
+                            .map(s -> s.split("\\|")).filter(s1 -> "3".equals(s1[5]))
+                            .map(i -> I050.builder()
                                     .dataInclusao(i[2])
                                     .codigoNaturezaConta(i[3])
                                     .indTipoConta(i[4])
@@ -188,9 +195,9 @@ public class LeituraArquivo {
                                     .build())
                             .collect(Collectors.toList());
 
-                    List<I050> nivel4 = lines.stream().filter(l-> l.contains("I050"))
-                            .map(s -> s.split("\\|")).filter(s1->"4".equals(s1[5]))
-                            .map(i-> I050.builder()
+                    List<I050> nivel4 = lines.stream().filter(l -> l.contains("I050"))
+                            .map(s -> s.split("\\|")).filter(s1 -> "4".equals(s1[5]))
+                            .map(i -> I050.builder()
                                     .dataInclusao(i[2])
                                     .codigoNaturezaConta(i[3])
                                     .indTipoConta(i[4])
@@ -207,22 +214,22 @@ public class LeituraArquivo {
 //                });
                     List<List<I050>> x = nivel3.stream().map(st3 ->
                             nivel4.stream()
-                                    .filter(n4->n4.getCodigoContaSintetica().equals(st3.getCodigoContaAnalitica()))
-                                    .collect(Collectors.toList())).filter(x1 -> x1.size()>0)
+                                    .filter(n4 -> n4.getCodigoContaSintetica().equals(st3.getCodigoContaAnalitica()))
+                                    .collect(Collectors.toList())).filter(x1 -> x1.size() > 0)
                             .collect(Collectors.toList());
 
 
                     List<List<I050>> y = nivel2.stream().map(st2 ->
                             nivel3.stream()
-                                    .filter(n3->n3.getCodigoContaSintetica().equals(st2.getCodigoContaAnalitica()))
-                                    .collect(Collectors.toList())).filter(x1 -> x1.size()>0)
+                                    .filter(n3 -> n3.getCodigoContaSintetica().equals(st2.getCodigoContaAnalitica()))
+                                    .collect(Collectors.toList())).filter(x1 -> x1.size() > 0)
                             .collect(Collectors.toList());
 
 
                     List<List<I050>> z = nivel1.stream().map(st1 ->
                             nivel2.stream()
-                                    .filter(n2->n2.getCodigoContaSintetica().equals(st1.getCodigoContaAnalitica()))
-                                    .collect(Collectors.toList())).filter(x1 -> x1.size()>0)
+                                    .filter(n2 -> n2.getCodigoContaSintetica().equals(st1.getCodigoContaAnalitica()))
+                                    .collect(Collectors.toList())).filter(x1 -> x1.size() > 0)
                             .collect(Collectors.toList());
 
 
