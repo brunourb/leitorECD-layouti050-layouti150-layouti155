@@ -71,10 +71,10 @@ public class I050 {
         return this.getCodigoContaSintetica().equals(codigoContaAnaliticaParent);
     }
 
-    public String recursiveWalk(){
+    public String recursiveWalk(String tab){
         StringBuilder sb = new StringBuilder();
         if (this.getSubContas()!=null && this.getSubContas().size() > 0) {
-            this.getSubContas().forEach(i1 -> sb.append(String.format("\n\t%s %s %s %s", i1.getCodigoContaAnalitica(), i1.getCodigoContaSintetica(), i1.getNomeConta(), i1.recursiveWalk())));
+            this.getSubContas().forEach(i1 -> sb.append(String.format("\n\t%s %s %s %s %s", tab, i1.getCodigoContaAnalitica(), i1.getCodigoContaSintetica(), i1.getNomeConta(), i1.recursiveWalk("\t\t"))));
         }
         return sb.toString();
     }

@@ -41,7 +41,6 @@ public class LeituraArquivo {
 
     }
 
-
     public static void example(File myDir, String[] RESTRICAO_ARQUIVOS){
         Collection<File> files = FileUtils.listFiles(myDir, RESTRICAO_ARQUIVOS, true);
         Stream<File> stream = files.parallelStream();
@@ -121,102 +120,15 @@ public class LeituraArquivo {
                                     .subContas(subContas).build();
                         }).collect(Collectors.toList());
 
-//                List<I050> nivel0 = lines.stream().filter(l-> l.contains("I050"))
-//                        .map(s -> s.split("\\|")).filter(s1->"".equals(s1[5]))
-//                        .map(i-> {List<I050> subContas = nivel2.stream().filter(n->n.isChild(i[6])).collect(Collectors.toList());
-//
-//                            return I050.builder()
-//                                    .dataInclusao(i[2])
-//                                    .codigoNaturezaConta(i[3])
-//                                    .indTipoConta(i[4])
-//                                    .nivelConta(i[5])
-//                                    .codigoContaAnalitica(i[6])
-//                                    .codigoContaSintetica(i[7])
-//                                    .nomeConta(i[8])
-//                                    .subContas(subContas).build();
-//                        }).collect(Collectors.toList());
-
-
-//                nivel4.forEach(i->{
-//                    System.out.printf("%s %s %s %s\n",
-//                            i.getNivelConta(),
-//                            i.getCodigoContaAnalitica(),
-//                            i.getCodigoContaSintetica(),
-//                            i.getNomeConta());
-//                });
-
                 nivel1.forEach(i-> {
                             System.out.printf("%s %s %s %s %s \n",
                                     i.getNivelConta(),
                                     i.getCodigoContaAnalitica(),
                                     i.getCodigoContaSintetica(),
                                     i.getNomeConta(),
-                                    i.recursiveWalk());
+                                    i.recursiveWalk("\t"));
                 });
 
-//                nivel2.forEach(i->{
-//                    System.out.printf("%s %s %s %s\n",
-//                            i.getNivelConta(),
-//                            i.getCodigoContaAnalitica(),
-//                            i.getCodigoContaSintetica(),
-//                            i.getNomeConta());
-//                });
-//
-//                nivel1.forEach(i->{
-//                    System.out.printf("%s %s %s %s\n",
-//                            i.getNivelConta(),
-//                            i.getCodigoContaAnalitica(),
-//                            i.getCodigoContaSintetica(),
-//                            i.getNomeConta());
-//                });
-
-
-
-
-
-//                 nivel3.forEach(i->{
-//                     System.out.printf("%s %s %s %s\n",i.getCodigoContaAnalitica(), i.getCodigoContaSintetica(),i.getNomeConta(), i.getSubContas());
-//                });
-//                    List<List<I050>> x = nivel3.stream().map(st3 ->
-//                            nivel4.stream()
-//                                    .filter(n4->n4.getCodigoContaSintetica().equals(st3.getCodigoContaAnalitica()))
-//                                    .collect(Collectors.toList())).filter(x1 -> x1.size()>0)
-//                            .collect(Collectors.toList());
-//
-//
-//                    List<List<I050>> y = nivel2.stream().map(st2 ->
-//                            nivel3.stream()
-//                                    .filter(n3->n3.getCodigoContaSintetica().equals(st2.getCodigoContaAnalitica()))
-//                                    .collect(Collectors.toList())).filter(x1 -> x1.size()>0)
-//                            .collect(Collectors.toList());
-//
-//
-//                    List<List<I050>> z = nivel1.stream().map(st1 ->
-//                            nivel2.stream()
-//                                    .filter(n2->n2.getCodigoContaSintetica().equals(st1.getCodigoContaAnalitica()))
-//                                    .collect(Collectors.toList())).filter(x1 -> x1.size()>0)
-//                            .collect(Collectors.toList());
-
-
-
-
-
-                /*.collect(Collectors.toList());*/
-//                 List<I050> i050 = lines.stream().filter(l-> l.contains("I050"))
-//                         .map(s -> s.split("\\|"))
-//                         .map(i-> I050.builder()
-//                                .dataInclusao(i[2])
-//                                .codigoNaturezaConta(i[3])
-//                                .indTipoConta(i[4])
-//                                .nivelConta(i[5])
-//                                .codigoContaAnalitica(i[6])
-//                                .codigoContaSintetica(i[7])
-//                                .nomeConta(i[8])
-//                                .build())
-//                        .collect(Collectors.toList());
-//                 i050.forEach(i->{
-//                     System.out.printf("%s %s %s\n",i.getCodigoContaAnalitica(), i.getCodigoContaSintetica(),i.getNomeConta());
-//                });
             } catch (IOException ex) {
                 Logger.getLogger(FXMLController.class.getName()).log(Level.SEVERE, null, ex);
             }
