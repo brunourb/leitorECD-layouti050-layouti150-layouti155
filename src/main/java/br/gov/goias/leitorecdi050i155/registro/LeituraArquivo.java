@@ -12,9 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -65,9 +63,11 @@ public class LeituraArquivo {
         return new BigDecimal(value.replace(",","."));
     }
 
-    static List<I150I155> extractI150I155(String[] i, List<String> lines){
+    static Set<I150I155> extractI150I155(String[] i, List<String> lines){
         final String FILTER_I150 = "I150";
         final String FILTER_I155 = "I155";
+
+        Comparator<I150I155> comparator = (c1, c2) -> c1.getCodigoConta().compareTo(c2.getCodigoConta());
 
         Object[] p1 = lines.stream()
                 .filter(f -> f.contains(FILTER_I150))
@@ -75,7 +75,7 @@ public class LeituraArquivo {
 
         String[] periodo = (String[]) p1[0];
 
-        List<I150I155> registroI150 = lines.stream()
+        Set<I150I155> registroI150 = lines.stream()
                 .filter(f -> f.contains(FILTER_I155)).filter(f1->f1.contains(i[6])) //CODIGO ANALITICO
                 .map(m -> formatData(m))
                 .map(m1 -> I150I155.builder()
@@ -90,7 +90,7 @@ public class LeituraArquivo {
                         .valorSaldoFinal(convert2BigDecimal(m1[8]))
                         .indSituacaoSaldoFinal(m1[9])
                 .build())
-                .collect(Collectors.toList());
+                .collect(Collectors.toCollection(() -> new TreeSet<I150I155>(comparator)));
 
         return registroI150;
     }
@@ -99,7 +99,7 @@ public class LeituraArquivo {
         final String FILTER_I150 = "I150";
         final String FILTER_I155 = "I155";
 
-        List<I150I155> registroI150I155 = extractI150I155(i,lines);
+        Set<I150I155> registroI150I155 = extractI150I155(i,lines);
 
         return I050.builder()
                 .dataInclusao(i[2])
@@ -113,7 +113,7 @@ public class LeituraArquivo {
                 .build();
     }
 
-    static I050 extract(String[] i, List<I050> lista) {
+    static I050 extract(String[] i, Set<I050> lista) {
         List<I050> subContas = lista.stream().filter(n -> n.isChild(i[6])).collect(Collectors.toList());
         return I050.builder()
                 .dataInclusao(i[2])
@@ -135,18 +135,20 @@ public class LeituraArquivo {
                 .uf(data[7])
                 .ie(data[8])
                 .codigoMunicipioIBGE(data[9])
-                .registros(new ArrayList<I050>())
+                .registros(new LinkedList<>())
                 .im(data[10]).build();
     }
 
-    static List<I150I155> extract(List<String> lines){
+    static Set<I150I155> extract(List<String> lines){
         final String FILTER_I150 = "I150";
         final String FILTER_I155 = "I155";
+
+        Comparator<I150I155> comparator = (c1, c2) -> c1.getCodigoConta().compareTo(c2.getCodigoConta());
 
         return lines.stream().filter(l -> l.contains(FILTER_I150))
                 .map(s -> formatData(s))
                 .map(i -> builderI150(i))
-                .collect(Collectors.toList());
+                .collect(Collectors.toCollection(() -> new TreeSet<I150I155>(comparator)));
     }
 
     static I150I155 builderI150(String[] i) {
@@ -160,30 +162,36 @@ public class LeituraArquivo {
         return new ArrayList<>();
     }
 
-    static List<I050> extract(List<String> lines, String nivelConta, List<I050> subLista){
+    static Set<I050> extract(List<String> lines, String nivelConta, Set<I050> subLista){
         final String FILTER_I050 = "I050";
+//        LI050 registro = new I050();
+
+        Comparator<I050> comparator = (c1, c2) -> c1.getCodigoContaAnalitica().compareTo(c2.getCodigoContaAnalitica());
 
         if(subLista==null){
-            return lines.stream().filter(l -> l.contains(FILTER_I050))
+           return lines.stream().filter(l -> l.contains(FILTER_I050))
                     .map(s -> formatData(s)).filter(s1 -> filterDataI050(s1, nivelConta))
-                    .map(i -> builderI050(i,lines))
-                    .collect(Collectors.toList());
+                    .map(i -> builderI050(i, lines))
+                   .collect(Collectors.toCollection(() -> new TreeSet<I050>(comparator)));
         }
         else{
             return lines.stream().filter(l -> l.contains(FILTER_I050))
                     .map(s -> formatData(s)).filter(s1 -> filterDataI050(s1, nivelConta))
-                    .map(i -> extract(i, subLista)).collect(Collectors.toList());
+                    .map(i -> extract(i, subLista))
+                    .collect(Collectors.toCollection(() -> new TreeSet<I050>(comparator)));
         }
+
+
     }
 
     public static List<ECD000> extractDataEmpresas(File diretorio, String[] RESTRICAO_ARQUIVOS) {
 
         List<ECD000> empresas = new ArrayList<ECD000>();
         List<String> lines = new ArrayList<String>();
-        List<I050> nivel4 = new ArrayList<>();
-        List<I050> nivel3 = new ArrayList<>();
-        List<I050> nivel2 = new ArrayList<>();
-        List<I050> nivel1 = new ArrayList<>();
+        Set<I050> nivel4 = new HashSet<>();
+        Set<I050> nivel3 = new HashSet<>();
+        Set<I050> nivel2 = new HashSet<>();
+        Set<I050> nivel1 = new HashSet<>();
 
 
         Collection<File> files = FileUtils.listFiles(diretorio, RESTRICAO_ARQUIVOS, true);
@@ -210,7 +218,7 @@ public class LeituraArquivo {
 
         nivel1 = extract(lines,"1", nivel2);
 
-        //empresa.getRegistros().addAll(nivel1);
+        empresa.getRegistros().addAll(nivel1);
 
         empresas.add(empresa);
 

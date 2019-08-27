@@ -6,11 +6,11 @@
 package br.gov.goias.leitorecdi050i155.registro;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import java.util.Set;
+
+import lombok.*;
 
 /**
  *
@@ -21,6 +21,8 @@ import lombok.ToString;
 @Builder
 @ToString
 @EqualsAndHashCode
+@NoArgsConstructor
+@AllArgsConstructor
 public class I050 {
    
     /**
@@ -63,7 +65,7 @@ public class I050 {
      */
     List<I050> subContas = new ArrayList<I050>();
 
-    List<I150I155> lancamentos = new ArrayList<I150I155>();
+    Set<I150I155> lancamentos = new HashSet<>();
     
     public boolean hasSubConta(){
         return !"".equals(this.getCodigoContaSintetica());
