@@ -11,8 +11,11 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.text.MaskFormatter;
+
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  *
@@ -20,6 +23,8 @@ import lombok.Data;
  */
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ECD000 {
     
     String dataInicial;
@@ -32,7 +37,6 @@ public class ECD000 {
     String im; 
     
     List<I050> registros = new ArrayList<I050>();
-
     
     public String getCnpj(){
         try {

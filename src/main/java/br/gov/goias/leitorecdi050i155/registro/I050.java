@@ -62,6 +62,8 @@ public class I050 {
      * 
      */
     List<I050> subContas = new ArrayList<I050>();
+
+    List<I150I155> lancamentos = new ArrayList<I150I155>();
     
     public boolean hasSubConta(){
         return !"".equals(this.getCodigoContaSintetica());
@@ -71,12 +73,21 @@ public class I050 {
         return this.getCodigoContaSintetica().equals(codigoContaAnaliticaParent);
     }
 
-    public String recursiveWalk(String tab){
+    public String recursiveWalkSubContas(String tab){
         StringBuilder sb = new StringBuilder();
         if (this.getSubContas()!=null && this.getSubContas().size() > 0) {
-            this.getSubContas().forEach(i1 -> sb.append(String.format("\n\t%s %s %s %s %s", tab, i1.getCodigoContaAnalitica(), i1.getCodigoContaSintetica(), i1.getNomeConta(), i1.recursiveWalk("\t\t"))));
+            this.getSubContas().forEach(i1 -> sb.append(String.format("\n\t%s %s %s %s %s %s", tab, i1.getCodigoContaAnalitica(), i1.getCodigoContaSintetica(), i1.getNomeConta(), i1.recursiveWalkSubContas("\t\t"), i1.recursiveWalkLancamentos("\t\t\t"))));
         }
         return sb.toString();
     }
-    
+
+    public String recursiveWalkLancamentos(String tab){
+        StringBuilder sb = new StringBuilder();
+        if (this.getLancamentos()!=null && this.getLancamentos().size() > 0) {
+            this.getLancamentos().forEach(i1 -> sb.append(i1.recursiveWalk(tab)));
+        }
+
+        return sb.toString();
+    }
+
 }
