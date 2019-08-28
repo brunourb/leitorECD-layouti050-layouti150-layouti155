@@ -28,7 +28,7 @@ public class LeituraArquivo {
 
         File diretorio = new File("D:\\ecd");
 
-        List<ECD000> empresas = new ArrayList<ECD000>();
+        Set<ECD000> empresas = new HashSet<>();
 
         long dirSizeB = FileUtils.sizeOfDirectory(diretorio);
         System.out.printf("The size of directory is: %.2f megabytes\n", (double) dirSizeB / FileUtils.ONE_MB);
@@ -184,9 +184,9 @@ public class LeituraArquivo {
 
     }
 
-    public static List<ECD000> extractDataEmpresas(File diretorio, String[] RESTRICAO_ARQUIVOS) {
+    public static Set<ECD000> extractDataEmpresas(File diretorio, String[] RESTRICAO_ARQUIVOS) {
 
-        List<ECD000> empresas = new ArrayList<ECD000>();
+        Set<ECD000> empresas = new HashSet<ECD000>();
         List<String> lines = new ArrayList<String>();
         Set<I050> nivel4 = new HashSet<>();
         Set<I050> nivel3 = new HashSet<>();
