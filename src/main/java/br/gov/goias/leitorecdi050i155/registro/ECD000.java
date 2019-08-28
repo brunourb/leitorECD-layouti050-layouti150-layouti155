@@ -51,6 +51,19 @@ public class ECD000 {
 
         return null;
     }
-    
-    
+
+    @Override
+    public String toString() {
+        return "ECD000{" +
+                "dataInicial='" + dataInicial + '\'' +
+                ", dataFinal='" + dataFinal + '\'' +
+                ", nomeEmpresa='" + nomeEmpresa + '\'' +
+                ", cnpj='" + cnpj + '\'' +
+                ", uf='" + uf + '\'' +
+                ", ie='" + ie + '\'' +
+                ", codigoMunicipioIBGE='" + codigoMunicipioIBGE + '\'' +
+                ", im='" + im + '\'' +
+               // ", registros=" + registros +
+                '}';
+    }
 }

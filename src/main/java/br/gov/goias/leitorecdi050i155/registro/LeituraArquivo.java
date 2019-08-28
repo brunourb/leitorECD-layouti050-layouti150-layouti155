@@ -12,6 +12,8 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -36,7 +38,13 @@ public class LeituraArquivo {
         final String[] RESTRICAO_ARQUIVOS = {"txt"};
         empresas = extractDataEmpresas(diretorio, RESTRICAO_ARQUIVOS);
 
-        System.out.println(empresas.toString());
+        Stream<ECD000> e = empresas.parallelStream();
+        e.forEachOrdered(e1 -> {
+            System.out.printf("\n %s", e1.toString());
+        });
+
+
+//        System.out.println(empresas.toString());
 
         //                nivel1.forEach(i -> {
 //                    System.out.printf("%s %s %s %s %s \n",
@@ -59,11 +67,11 @@ public class LeituraArquivo {
         return value.equals(s[5]);
     }
 
-    static BigDecimal convert2BigDecimal(String value){
-        return new BigDecimal(value.replace(",","."));
+    static BigDecimal convert2BigDecimal(String value) {
+        return new BigDecimal(value.replace(",", "."));
     }
 
-    static Set<I150I155> extractI150I155(String[] i, List<String> lines){
+    static Set<I150I155> extractI150I155(String[] i, List<String> lines) {
         final String FILTER_I150 = "I150";
         final String FILTER_I155 = "I155";
 
@@ -76,7 +84,7 @@ public class LeituraArquivo {
         String[] periodo = (String[]) p1[0];
 
         Set<I150I155> registroI150 = lines.stream()
-                .filter(f -> f.contains(FILTER_I155)).filter(f1->f1.contains(i[6])) //CODIGO ANALITICO
+                .filter(f -> f.contains(FILTER_I155)).filter(f1 -> f1.contains(i[6])) //CODIGO ANALITICO
                 .map(m -> formatData(m))
                 .map(m1 -> I150I155.builder()
                         .periodoInicial(String.valueOf(periodo[2]))
@@ -89,7 +97,7 @@ public class LeituraArquivo {
                         .valorTotalCredito(convert2BigDecimal(m1[7]))
                         .valorSaldoFinal(convert2BigDecimal(m1[8]))
                         .indSituacaoSaldoFinal(m1[9])
-                .build())
+                        .build())
                 .collect(Collectors.toCollection(() -> new TreeSet<I150I155>(comparator)));
 
         return registroI150;
@@ -99,7 +107,7 @@ public class LeituraArquivo {
         final String FILTER_I150 = "I150";
         final String FILTER_I155 = "I155";
 
-        Set<I150I155> registroI150I155 = extractI150I155(i,lines);
+        Set<I150I155> registroI150I155 = extractI150I155(i, lines);
 
         return I050.builder()
                 .dataInclusao(i[2])
@@ -139,7 +147,7 @@ public class LeituraArquivo {
                 .im(data[10]).build();
     }
 
-    static Set<I150I155> extract(List<String> lines){
+    static Set<I150I155> extract(List<String> lines) {
         final String FILTER_I150 = "I150";
         final String FILTER_I155 = "I155";
 
@@ -157,24 +165,23 @@ public class LeituraArquivo {
                 .periodoFinal(i[3]).build();
     }
 
-    static List<I150I155> extractI150155(I050 i, List<String> lines){
+    static List<I150I155> extractI150155(I050 i, List<String> lines) {
 
         return new ArrayList<>();
     }
 
-    static Set<I050> extract(List<String> lines, String nivelConta, Set<I050> subLista){
+    static Set<I050> extract(List<String> lines, String nivelConta, Set<I050> subLista) {
         final String FILTER_I050 = "I050";
 //        LI050 registro = new I050();
 
         Comparator<I050> comparator = (c1, c2) -> c1.getCodigoContaAnalitica().compareTo(c2.getCodigoContaAnalitica());
 
-        if(subLista==null){
-           return lines.stream().filter(l -> l.contains(FILTER_I050))
+        if (subLista == null) {
+            return lines.stream().filter(l -> l.contains(FILTER_I050))
                     .map(s -> formatData(s)).filter(s1 -> filterDataI050(s1, nivelConta))
                     .map(i -> builderI050(i, lines))
-                   .collect(Collectors.toCollection(() -> new TreeSet<I050>(comparator)));
-        }
-        else{
+                    .collect(Collectors.toCollection(() -> new TreeSet<I050>(comparator)));
+        } else {
             return lines.stream().filter(l -> l.contains(FILTER_I050))
                     .map(s -> formatData(s)).filter(s1 -> filterDataI050(s1, nivelConta))
                     .map(i -> extract(i, subLista))
@@ -186,41 +193,45 @@ public class LeituraArquivo {
 
     public static Set<ECD000> extractDataEmpresas(File diretorio, String[] RESTRICAO_ARQUIVOS) {
 
+        File[] files1 = diretorio.listFiles();
         Set<ECD000> empresas = new HashSet<ECD000>();
-        List<String> lines = new ArrayList<String>();
-        Set<I050> nivel4 = new HashSet<>();
-        Set<I050> nivel3 = new HashSet<>();
-        Set<I050> nivel2 = new HashSet<>();
-        Set<I050> nivel1 = new HashSet<>();
+
+        Arrays.stream(files1).forEach(f -> {
+            List<String> lines = new ArrayList<String>();
+            Set<I050> nivel4 = new HashSet<>();
+            Set<I050> nivel3 = new HashSet<>();
+            Set<I050> nivel2 = new HashSet<>();
+            Set<I050> nivel1 = new HashSet<>();
 
 
-        Collection<File> files = FileUtils.listFiles(diretorio, RESTRICAO_ARQUIVOS, true);
-        Stream<File> stream = files.parallelStream();
+            Collection<File> files = FileUtils.listFiles(f, RESTRICAO_ARQUIVOS, true);
+            Stream<File> stream = files.parallelStream();
 
-        stream.forEachOrdered(file -> {
-            try {
+            stream.forEachOrdered(file -> {
+                try {
 
-                lines.addAll(FileUtils.readLines(file, StandardCharsets.ISO_8859_1.name()));
+                    lines.addAll(FileUtils.readLines(file, StandardCharsets.ISO_8859_1.name()));
 
-            } catch (IOException ex) {
-                Logger.getLogger(FXMLController.class.getName()).log(Level.SEVERE, null, ex);
-            }
+                } catch (IOException ex) {
+                    Logger.getLogger(FXMLController.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            });
+
+            String[] data = lines.get(0).split("\\|");
+            ECD000 empresa = extract(data);
+
+            nivel4 = extract(lines, "4", null);
+
+            nivel3 = extract(lines, "3", nivel4);
+
+            nivel2 = extract(lines, "2", nivel3);
+
+            nivel1 = extract(lines, "1", nivel2);
+
+            empresa.getRegistros().addAll(nivel1);
+
+            empresas.add(empresa);
         });
-
-        String[] data = lines.get(0).split("\\|");
-        ECD000 empresa = extract(data);
-
-        nivel4 = extract(lines,"4",null);
-
-        nivel3 = extract(lines,"3", nivel4);
-
-        nivel2 = extract(lines,"2", nivel3);
-
-        nivel1 = extract(lines,"1", nivel2);
-
-        empresa.getRegistros().addAll(nivel1);
-
-        empresas.add(empresa);
 
         return empresas;
     }
@@ -242,7 +253,7 @@ public class LeituraArquivo {
 //            }
 //        });
 
-        //Here creating a parallel stream
+//Here creating a parallel stream
 //        Stream<Integer> stream = list.parallelStream();
 //        Integer[] evenNumbersArr = stream.filter(i -> i % 2 == 0).toArray(Integer[]::new);
 //        System.out.print(evenNumbersArr);
