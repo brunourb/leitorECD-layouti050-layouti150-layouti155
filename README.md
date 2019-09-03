@@ -30,6 +30,17 @@ and will be deemed valid after the confirmation of Receipt of the file containin
   | I150 | Saldos periódicos – Identificação do período |
   | I155 | Detalhes dos saldos periódicos |
   
+  # Código da Natureza das Contas/Grupos de Contas
+  | Código  |   Grupo/Conta
+  | ---  | --- |
+  |01   |   Contas de Ativo
+  |02	|   Contas de Passivo
+  |03	|   Patrimônio Líquido
+  |04	|   Contas de Resultado
+  |05	|   Contas de Compensação
+  |09	|   Outras
+
+  
   
   # Configuração de Ambiente
   VM Options

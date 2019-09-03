@@ -6,6 +6,7 @@
 package br.gov.goias.leitorecdi050i155.registro;
 
 import br.gov.goias.leitorecdi050i155.util.HelperECD;
+import br.gov.goias.leitorecdi050i155.util.HelperExcel;
 import org.apache.commons.io.FileUtils;
 
 import javax.sound.midi.Soundbank;
@@ -30,6 +31,7 @@ public class LeituraArquivo {
 
         final String[] RESTRICAO_ARQUIVOS = {"txt"};
         empresas = HelperECD.extractDataEmpresas(diretorio, RESTRICAO_ARQUIVOS);
+//        HelperExcel.createFile(HelperECD.extract2Excel(empresas),"empresas");
 
         Stream<ECD000> e = empresas.parallelStream();
         e.forEachOrdered(e1 -> {
@@ -42,15 +44,18 @@ public class LeituraArquivo {
             System.out.println(e1.im);
             System.out.println(e1.uf);
             e1.registros.stream().forEach(r->{
-                System.out.printf("%s %s %s %s %s \n",
-                        r.getNivelConta(),
-                        r.getCodigoContaAnalitica(),
-                        r.getCodigoContaSintetica(),
-                        r.getNomeConta(),
-                        r.recursiveWalkSubContas("\t"),
-                        r.recursiveWalkLancamentos("\t\t")
+//                r.recursiveSubContasValorAcumulado();
+                String resultado = r.recursiveWalkSubContas("\t");
+                if(r.recursiveWalkSubContas("\t")!=null){
+                    System.out.printf("%s %s %s \n",
+                            r.getNivelConta(),
+//                        r.getCodigoContaAnalitica(),
+//                        r.getCodigoContaSintetica(),
+                            r.getNomeConta(),
+                            resultado
                     );
-                });
+                }
+            });
             });
     }
 }

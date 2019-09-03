@@ -9,6 +9,7 @@ import org.apache.poi.hssf.usermodel.HSSFDataFormat;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.util.CellRangeAddress;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,6 +22,195 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class HelperECD {
+
+    public static HSSFWorkbook extract2Excel(Set<ECD000> empresas) {
+
+        // Criando o arquivo e uma planilha chamada "Product"
+        HSSFWorkbook workbook = new HSSFWorkbook();
+
+        CellStyle style = HelperExcel.headerStyle(workbook);
+
+        Stream<ECD000> e = empresas.parallelStream();
+        e.forEachOrdered(e1 -> {
+            HSSFSheet sheet = workbook.createSheet(e1.getNomeEmpresa().replaceAll("[^A-Za-z0-9 ]", "")); //nome da planilha (CNPJ)
+            // Definindo alguns padroes de layout
+            sheet.setDefaultColumnWidth(15);
+            sheet.setDefaultRowHeight((short) 400);
+
+            int rownum = 0;
+            int cellnum = 0;
+            Cell cell;
+            Row row;
+
+            // Configurando Header
+            row = sheet.createRow(rownum++);
+            cell = row.createCell(cellnum);
+            cell.setCellStyle(style);
+            cell.setCellValue("Empresa");
+
+            cell = row.createCell(1);
+            cell.setCellStyle(style);
+            sheet.addMergedRegion(new CellRangeAddress(0, 0, 1, 5));
+            cell.setCellValue(e1.getNomeEmpresa());
+
+            row = sheet.createRow(rownum++);
+            cell = row.createCell(cellnum);
+            cell.setCellStyle(style);
+            cell.setCellValue("CNPJ");
+
+            cell = row.createCell(1);
+            cell.setCellStyle(style);
+            cell.setCellValue(e1.getCnpj());
+
+            row = sheet.createRow(rownum++);
+            cell = row.createCell(cellnum);
+            cell.setCellStyle(style);
+            cell.setCellValue("IE");
+
+            cell = row.createCell(1);
+            cell.setCellStyle(style);
+            cell.setCellValue(e1.getIe());
+
+            row = sheet.createRow(rownum++);
+            cell = row.createCell(cellnum);
+            cell.setCellStyle(style);
+            cell.setCellValue("IM");
+
+            cell = row.createCell(1);
+            cell.setCellStyle(style);
+            cell.setCellValue(e1.getIm());
+
+            row = sheet.createRow(rownum++);
+            cell = row.createCell(cellnum);
+            cell.setCellStyle(style);
+            cell.setCellValue("UF");
+
+            cell = row.createCell(1);
+            cell.setCellStyle(style);
+            cell.setCellValue(e1.getUf());
+
+//            System.out.println(e1.getCnpj());
+//            System.out.println(e1.getIe());
+//            System.out.println(e1.getNomeEmpresa());
+//            System.out.println(e1.getCodigoMunicipioIBGE());
+//            System.out.println(e1.getDataInicial());
+//            System.out.println(e1.getDataFinal());
+//            System.out.println(e1.getIm());
+//            System.out.println(e1.getUf());
+
+            int finalRownum = 6;
+
+            for (I050 r : e1.getRegistros()) {
+
+                row = sheet.createRow(finalRownum);
+
+                cell = row.createCell(cellnum);
+                cell.setCellStyle(style);
+                cell.setCellValue(r.getCodigoContaAnalitica());
+
+                cell = row.createCell(1);
+                cell.setCellStyle(style);
+                cell.setCellValue(r.getCodigoContaSintetica());
+
+                cell = row.createCell(2);
+                cell.setCellStyle(style);
+                cell.setCellValue(r.getNomeConta());
+
+//                cell = row.createCell(cellnum);
+//                cell.setCellStyle(HelperExcel.textStyle(workbook));
+//                cell.setCellValue(r.getNomeConta());
+
+                finalRownum++;
+
+                recursiveWalkSubContas(workbook, sheet, row, finalRownum, r.getSubContas());
+
+
+//                System.out.printf("%s %s %s %s %s \n",
+//                        r.getNivelConta(),
+//                        r.getCodigoContaAnalitica(),
+//                        r.getCodigoContaSintetica(),
+//                        r.getNomeConta(),
+//                        r.recursiveWalkSubContas("\t"),
+//                        r.recursiveWalkLancamentos("\t\t")
+//                );
+            }
+
+            //        // Adicionando os dados dos produtos na planilha
+//        for (Product product : products) {
+//            row = sheet.createRow(rownum++);
+//            cellnum = 0;
+//
+//            cell = row.createCell(cellnum++);
+//            cell.setCellStyle(textStyle);
+//            cell.setCellValue(product.getId());
+//
+//            cell = row.createCell(cellnum++);
+//            cell.setCellStyle(textStyle);
+//            cell.setCellValue(product.getName());
+//
+//            cell = row.createCell(cellnum++);
+//            cell.setCellStyle(numberStyle);
+//            cell.setCellValue(product.getPrice());
+//        }
+
+
+        });
+        return workbook;
+    }
+
+    public static String recursiveWalkSubContas(HSSFWorkbook workbook, HSSFSheet sheet, Row row, int finalRownum, List<I050> registros){
+        StringBuilder sb = new StringBuilder();
+        int cellnum = 0;
+//        CellStyle style = HelperExcel.headerStyle(workbook);
+        if(registros!=null && registros.size()>0){
+            for (I050 i050 : registros) {
+                Cell cell;
+                row = sheet.createRow(finalRownum);
+                cell = row.createCell(0);
+//                cell.setCellStyle(style);
+                cell.setCellValue(i050.getCodigoContaAnalitica());
+
+                cell = row.createCell(1);
+//                cell.setCellStyle(style);
+                cell.setCellValue(i050.getCodigoContaSintetica());
+
+                cell = row.createCell(2);
+//                cell.setCellStyle(style);
+                cell.setCellValue(i050.getNomeConta());
+
+                finalRownum++;
+                recursiveWalkSubContas(workbook, sheet, row, finalRownum, registros);
+
+//                cell = row.createCell(3);
+//                cell.setCellStyle(HelperExcel.textStyle(workbook));
+//                cell.setCellValue(i050.getNomeConta());
+            }
+        }
+
+//        if (this.getSubContas()!=null && this.getSubContas().size() > 0) {
+//            this.getSubContas().forEach(i1 ->
+//                    sb.append(String.format("\n\t%s %s %s %s %s %s",
+//                            tab,
+//                            i1.getCodigoContaAnalitica(),
+//                            i1.getCodigoContaSintetica(),
+//                            i1.getNomeConta(),
+//                            i1.recursiveWalkSubContas("\t\t"),
+//                            i1.recursiveWalkLancamentos("\t\t\t"))));
+//
+//            return sb.toString();
+//        }
+
+        return null;
+    }
+
+//    public String recursiveWalkLancamentos(String tab){
+//        StringBuilder sb = new StringBuilder();
+//        if (this.getLancamentos()!=null && this.getLancamentos().size() > 0) {
+//            this.getLancamentos().forEach(i1 -> sb.append(i1.recursiveWalk(tab)));
+//            return sb.toString();
+//        }
+//        return null;
+//    }
 
     static String[] formatData(String s) {
         return s.split("\\|");
@@ -200,7 +390,7 @@ public class HelperECD {
     }
 
 
-    static void createSheet(List<ECD000> empresas){
+    static void createSheet(List<ECD000> empresas) {
 
         // Criando o arquivo e uma planilha chamada "Product"
         HSSFWorkbook workbook = new HSSFWorkbook();
@@ -208,7 +398,7 @@ public class HelperECD {
 
         // Definindo alguns padroes de layout
         sheet.setDefaultColumnWidth(15);
-        sheet.setDefaultRowHeight((short)400);
+        sheet.setDefaultRowHeight((short) 400);
 
         int rownum = 0;
         int cellnum = 0;
