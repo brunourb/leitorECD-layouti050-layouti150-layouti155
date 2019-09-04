@@ -45,8 +45,9 @@ public class LeituraArquivo {
             System.out.println(e1.uf);
             e1.registros.stream().forEach(r->{
 //                r.recursiveSubContasValorAcumulado();
+                System.out.printf("\n\n%s\n", r.getNomeConta());
                 String resultado = r.recursiveWalkSubContas("\t");
-                if(r.recursiveWalkSubContas("\t")!=null){
+                if(r.recursiveWalkSubContas("\t")!=null && !resultado.isEmpty()){
                     System.out.printf("%s %s %s \n",
                             r.getNivelConta(),
 //                        r.getCodigoContaAnalitica(),

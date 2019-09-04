@@ -25,6 +25,9 @@ import lombok.*;
 @AllArgsConstructor
 public class I050 {
 
+    final String DEBIDO ="D";
+    final String CREDITO ="C";
+
     /**
      * Data da inclusão/alteração.
      */
@@ -137,14 +140,37 @@ public class I050 {
         StringBuilder sb = new StringBuilder();
         if (this.getLancamentos()!=null && this.getLancamentos().size() > 0) {
 
-            BigDecimal saldo = this.getLancamentos().stream().map(i150I155 -> i150I155.getValorSaldoFinal()).reduce(BigDecimal::add).orElse(BigDecimal.ZERO);
+            BigDecimal saldo = this.getLancamentos().stream().map(i150I155 -> convertCreditoDebito(i150I155.getValorSaldoFinal(),i150I155.getIndSituacaoSaldoFinal()).multiply(i150I155.getValorSaldoFinal())).reduce(BigDecimal::add).orElse(BigDecimal.ZERO);
             System.out.printf("\nCódigo Natureza: %s %s %.2f",this.getCodigoNaturezaConta(), this.getNomeConta(),saldo.doubleValue());
 
             this.getLancamentos().forEach(i1 -> sb.append(i1.recursiveWalk(tab)));
-            System.out.printf("\n%s ",sb.toString());
+//            System.out.printf("\n%s ",sb.toString());
             return sb.toString();
         }
         return null;
+    }
+
+    public BigDecimal convertCreditoDebito(BigDecimal valor, String indicadorConta){
+
+        GrupoContas grupo = GrupoContas.fromString(this.getCodigoNaturezaConta());
+
+        BigDecimal saldo = new BigDecimal(1);
+
+        switch (grupo){
+            case ATIVO:
+            case CONTAS_RESULTADO:
+                saldo = indicadorConta.equals(DEBIDO) ? saldo : saldo.negate();
+                break;
+            case PASSIVO:
+            case PATRIMONIO_LIQUIDO:
+                saldo = indicadorConta.equals(DEBIDO) ? saldo.negate() : saldo;
+                break;
+            case CONTAS_COMPENSACAO:
+                break;
+            case OUTRAS:
+                break;
+        }
+        return saldo;
     }
 
     public boolean isNotNull(String s){
