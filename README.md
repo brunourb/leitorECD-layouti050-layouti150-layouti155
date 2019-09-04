@@ -31,14 +31,14 @@ and will be deemed valid after the confirmation of Receipt of the file containin
   | I155 | Detalhes dos saldos periódicos |
   
   # Código da Natureza das Contas/Grupos de Contas
-  | Código  |   Grupo/Conta
-  | ---  | --- |
-  |01   |   Contas de Ativo
-  |02	|   Contas de Passivo
-  |03	|   Patrimônio Líquido
-  |04	|   Contas de Resultado
-  |05	|   Contas de Compensação
-  |09	|   Outras
+  | Código  |   Grupo/Conta | Crédito | Débito
+  | ---  | --- |  --- |  --- |
+  |01   |   Contas de Ativo         | C(-) | D(+) | 
+  |02	|   Contas de Passivo       | C(+) | D(-) |
+  |03	|   Patrimônio Líquido      | C(+) | D(-) |
+  |04	|   Contas de Resultado     | C(+) | D(-) |
+  |05	|   Contas de Compensação   | C(?) | D(?) |
+  |09	|   Outras                  | C(?) | D(?) |
 
   
   
