@@ -4,6 +4,7 @@ import br.gov.goias.leitorecdi050i155.FXMLController;
 import br.gov.goias.leitorecdi050i155.registro.ECD000;
 import br.gov.goias.leitorecdi050i155.registro.I050;
 import br.gov.goias.leitorecdi050i155.registro.I150I155;
+import br.gov.goias.leitorecdi050i155.registro.J100;
 import org.apache.commons.io.FileUtils;
 import org.apache.poi.hssf.usermodel.HSSFDataFormat;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
@@ -100,7 +101,7 @@ public class HelperECD {
 
             int finalRownum = 6;
 
-            for (I050 r : e1.getRegistros()) {
+            for (I050 r : e1.getI050s()) {
 
                 row = sheet.createRow(finalRownum);
 
@@ -271,10 +272,11 @@ public class HelperECD {
                 .codigoContaSintetica(i[7])
                 .nomeConta(i[8])
                 .lancamentos(registroI150I155)
+                .saldo(BigDecimal.ZERO)
                 .build();
     }
 
-    static I050 extract(String[] i, Set<I050> lista) {
+    static I050 extractI150(String[] i, Set<I050> lista) {
         List<I050> subContas = lista.stream().filter(n -> n.isChild(i[6])).collect(Collectors.toList());
         return I050.builder()
                 .dataInclusao(i[2])
@@ -284,10 +286,11 @@ public class HelperECD {
                 .codigoContaAnalitica(i[6])
                 .codigoContaSintetica(i[7])
                 .nomeConta(i[8])
+                .saldo(BigDecimal.ZERO)
                 .subContas(subContas).build();
     }
 
-    static ECD000 extract(String[] data) {
+    static ECD000 extractI150(String[] data) {
         return ECD000.builder()
                 .dataInicial(data[3])
                 .dataFinal(data[4])
@@ -296,11 +299,11 @@ public class HelperECD {
                 .uf(data[7])
                 .ie(data[8])
                 .codigoMunicipioIBGE(data[9])
-                .registros(new LinkedList<>())
+                .i050s(new LinkedList<>())
                 .im(data[10]).build();
     }
 
-    static Set<I150I155> extract(List<String> lines) {
+    static Set<I150I155> extractI150(List<String> lines) {
         final String FILTER_I150 = "I150";
         final String FILTER_I155 = "I155";
 
@@ -323,7 +326,7 @@ public class HelperECD {
         return new ArrayList<>();
     }
 
-    static Set<I050> extract(List<String> lines, String nivelConta, Set<I050> subLista) {
+    static Set<I050> extractI150(List<String> lines, String nivelConta, Set<I050> subLista) {
         final String FILTER_I050 = "I050";
 //        LI050 registro = new I050();
 
@@ -337,7 +340,7 @@ public class HelperECD {
         } else {
             return lines.stream().filter(l -> l.contains(FILTER_I050))
                     .map(s -> formatData(s)).filter(s1 -> filterDataI050(s1, nivelConta))
-                    .map(i -> extract(i, subLista))
+                    .map(i -> extractI150(i, subLista))
                     .collect(Collectors.toCollection(() -> new TreeSet<I050>(comparator)));
         }
 
@@ -371,22 +374,46 @@ public class HelperECD {
             });
 
             String[] data = lines.get(0).split("\\|");
-            ECD000 empresa = extract(data);
+            ECD000 empresa = extractI150(data);
 
-            nivel4 = extract(lines, "4", null);
+            nivel4 = extractI150(lines, "4", null);
 
-            nivel3 = extract(lines, "3", nivel4);
+            nivel3 = extractI150(lines, "3", nivel4);
 
-            nivel2 = extract(lines, "2", nivel3);
+            nivel2 = extractI150(lines, "2", nivel3);
 
-            nivel1 = extract(lines, "1", nivel2);
+            nivel1 = extractI150(lines, "1", nivel2);
 
-            empresa.getRegistros().addAll(nivel1);
+            Set<J100> j100 = extractJ100(lines);
+
+            empresa.getI050s().addAll(nivel1);
 
             empresas.add(empresa);
         });
 
         return empresas;
+    }
+
+    private static Set<J100> extractJ100(List<String> lines) {
+        final String FILTER_J100 = "J100";
+        Comparator<J100> comparator = (c1, c2) -> c1.getCodigoAglutinacao().compareTo(c2.getCodigoAglutinacao());
+
+        return lines.stream().filter(l -> l.contains(FILTER_J100))
+                .map(s -> formatData(s))
+                .map(i -> builderJ100(i))
+                .collect(Collectors.toCollection(() -> new TreeSet<J100>(comparator)));
+
+    }
+
+    private static J100 builderJ100(String[] i) {
+        return J100.builder()
+                .codigoAglutinacao(i[2])
+                .nivelAglutinacao(i[3])
+                .indiGrupoBalanco(i[4])
+                .descricao(i[5])
+                .valorTotal(new BigDecimal(i[6].replace(",",".")))
+                .indiSituacaoSaldo(i[7])
+                .build();
     }
 
 

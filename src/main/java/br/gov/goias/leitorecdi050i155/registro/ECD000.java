@@ -36,7 +36,8 @@ public class ECD000 {
     String codigoMunicipioIBGE;
     String im; 
     
-    List<I050> registros = new ArrayList<I050>();
+    List<I050> i050s = new ArrayList<I050>();
+    List<J100> i100s = new ArrayList<>();
     
     public String getCnpj(){
         try {

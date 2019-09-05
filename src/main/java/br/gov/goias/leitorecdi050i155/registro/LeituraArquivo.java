@@ -6,11 +6,10 @@
 package br.gov.goias.leitorecdi050i155.registro;
 
 import br.gov.goias.leitorecdi050i155.util.HelperECD;
-import br.gov.goias.leitorecdi050i155.util.HelperExcel;
 import org.apache.commons.io.FileUtils;
 
-import javax.sound.midi.Soundbank;
 import java.io.File;
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -21,7 +20,6 @@ public class LeituraArquivo {
 
 
     public static void main(String[] args) {
-
         File diretorio = new File("D:\\ecd");
 
         Set<ECD000> empresas = new HashSet<>();
@@ -31,7 +29,6 @@ public class LeituraArquivo {
 
         final String[] RESTRICAO_ARQUIVOS = {"txt"};
         empresas = HelperECD.extractDataEmpresas(diretorio, RESTRICAO_ARQUIVOS);
-//        HelperExcel.createFile(HelperECD.extract2Excel(empresas),"empresas");
 
         Stream<ECD000> e = empresas.parallelStream();
         e.forEachOrdered(e1 -> {
@@ -43,17 +40,17 @@ public class LeituraArquivo {
             System.out.println(e1.dataFinal);
             System.out.println(e1.im);
             System.out.println(e1.uf);
-            e1.registros.stream().forEach(r->{
+            e1.i050s.stream().forEach(r->{
 //                r.recursiveSubContasValorAcumulado();
                 System.out.printf("\n\n%s\n", r.getNomeConta());
-                String resultado = r.recursiveWalkSubContas("\t");
-                if(r.recursiveWalkSubContas("\t")!=null && !resultado.isEmpty()){
-                    System.out.printf("%s %s %s \n",
+                BigDecimal saldo = r.recursiveWalkSubContasValues();
+                if(r.recursiveWalkSubContasValues()!=BigDecimal.ZERO){
+                    System.out.printf("%s %s %.2f \n",
                             r.getNivelConta(),
 //                        r.getCodigoContaAnalitica(),
 //                        r.getCodigoContaSintetica(),
                             r.getNomeConta(),
-                            resultado
+                            saldo.doubleValue()
                     );
                 }
             });

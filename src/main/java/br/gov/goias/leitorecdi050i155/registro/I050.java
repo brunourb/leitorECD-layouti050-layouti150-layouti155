@@ -70,6 +70,8 @@ public class I050 {
 
     Set<I150I155> lancamentos = new HashSet<>();
 
+    BigDecimal saldo = BigDecimal.ZERO;
+
     public boolean hasSubConta(){
         return !"".equals(this.getCodigoContaSintetica());
     }
@@ -113,6 +115,19 @@ public class I050 {
        // System.out.println(counting);
     }
 
+    public BigDecimal recursiveWalkSubContasValues(){
+        BigDecimal saldo = new BigDecimal(0);
+        if (hasSubcontas()) {
+            this.getSubContas().stream().forEach(i1 ->
+            {
+                i1.recursiveWalkSubContasValues();
+                saldo.add(i1.recursiveWalkLancamentosValues());
+            });
+        }
+
+        return saldo;
+    }
+
     public String recursiveWalkSubContas(String tab){
         StringBuilder sb = new StringBuilder();
         if (hasSubcontas()) {
@@ -134,6 +149,27 @@ public class I050 {
         }
 
         return null;
+    }
+
+    public boolean hasLancamentos(){
+        return this.getLancamentos()!=null && this.getLancamentos().size() > 0;
+    }
+
+    public BigDecimal recursiveWalkLancamentosValues(){
+        if (hasLancamentos()) {
+            BigDecimal saldo = this.getLancamentos()
+                    .stream()
+                    .map(i150I155 ->
+                            convertCreditoDebito(i150I155.getValorSaldoFinal(),i150I155.getIndSituacaoSaldoFinal()).multiply(i150I155.getValorSaldoFinal()))
+                    .reduce(BigDecimal::add)
+                    .orElse(BigDecimal.ZERO);
+
+            if(saldo.doubleValue()>0){
+                System.out.printf("\nCódigo Natureza: %s %s %.2f",this.getCodigoNaturezaConta(), this.getNomeConta(),saldo.doubleValue());
+            }
+            return saldo;
+        }
+        return BigDecimal.ZERO;
     }
 
     public String recursiveWalkLancamentos(String tab){
