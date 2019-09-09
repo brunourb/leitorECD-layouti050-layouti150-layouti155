@@ -45,15 +45,15 @@ public class HelperExcel {
         headerStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
         headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         headerStyle.setAlignment(HorizontalAlignment.CENTER);
-        headerStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+        headerStyle.setVerticalAlignment(VerticalAlignment.JUSTIFY);
 
         return headerStyle;
     }
 
     public static CellStyle textStyle(HSSFWorkbook workbook){
         CellStyle textStyle = workbook.createCellStyle();
-        textStyle.setAlignment(HorizontalAlignment.CENTER);
-        textStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+        textStyle.setAlignment(HorizontalAlignment.LEFT);
+        textStyle.setVerticalAlignment(VerticalAlignment.JUSTIFY);
 
         return textStyle;
     }
@@ -62,8 +62,9 @@ public class HelperExcel {
         //Configurando estilos de células (Cores, alinhamento, formatação, etc..)
         HSSFDataFormat numberFormat = workbook.createDataFormat();
         CellStyle numberStyle = workbook.createCellStyle();
+        numberStyle.setAlignment(HorizontalAlignment.RIGHT);
         numberStyle.setDataFormat(numberFormat.getFormat("#,##0.00"));
-        numberStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+        numberStyle.setVerticalAlignment(VerticalAlignment.JUSTIFY);
 
         return numberStyle;
     }

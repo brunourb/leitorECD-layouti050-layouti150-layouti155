@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -347,6 +348,99 @@ public class HelperECD {
 
     }
 
+    public static HSSFWorkbook extractDataJ100Empresas(File diretorio, String[] RESTRICAO_ARQUIVOS) {
+
+        HSSFWorkbook workbook = new HSSFWorkbook();
+
+        File[] f1 = diretorio.listFiles();
+        final int[] index = {0};
+        Arrays.stream(f1).forEach(f -> {
+
+            List<String> lines = new ArrayList<String>();
+            Collection<File> files = FileUtils.listFiles(f, RESTRICAO_ARQUIVOS, true);
+            Stream<File> stream = files.parallelStream();
+            extractLines(lines, stream);
+            String[] data = lines.get(0).split("\\|");
+            ECD000 empresa = extractI150(data);
+            Set<J100> j100 = extractJ100(lines);
+
+            // Criando o arquivo e uma planilha chamada "Product"
+            HSSFSheet sheet = workbook.createSheet(UUID.randomUUID().toString());
+            // Definindo alguns padroes de layout
+            sheet.setDefaultColumnWidth(10);
+            sheet.setDefaultRowHeight((short)500);
+
+            int rownum = 0;
+            int cellnum = 0;
+            Cell cell = null;
+            Row row;
+
+            // Configurando Header
+            sheet.createFreezePane(0, 1); // this will freeze first row
+            sheet.autoSizeColumn(rownum);
+
+            row = sheet.createRow(rownum++);
+            cell = row.createCell(cellnum++);
+            cell.setCellStyle(HelperExcel.headerStyle(workbook));
+            cell.setCellValue("codigoAglutinacao");
+
+            cell = row.createCell(cellnum++);
+            cell.setCellStyle(HelperExcel.headerStyle(workbook));
+            cell.setCellValue("nivelAglutinacao");
+
+            cell = row.createCell(cellnum++);
+            cell.setCellStyle(HelperExcel.headerStyle(workbook));
+            cell.setCellValue("indiGrupoBalanco");
+
+            cell = row.createCell(cellnum++);
+            cell.setCellStyle(HelperExcel.headerStyle(workbook));
+            cell.setCellValue("descricao");
+
+            cell = row.createCell(cellnum++);
+            cell.setCellStyle(HelperExcel.headerStyle(workbook));
+            cell.setCellValue("valorTotal");
+
+            cell = row.createCell(cellnum++);
+            cell.setCellStyle(HelperExcel.headerStyle(workbook));
+            cell.setCellValue("indiSituacaoSaldo");
+
+            int rownum1 = 1;
+            Iterator<J100> itr = j100.iterator();
+            int para = 0;
+            while(itr.hasNext()){
+                int cellnum1 = 0;
+                J100 element = itr.next();
+
+                sheet.autoSizeColumn(rownum1);
+                row = sheet.createRow(rownum1++);
+                cell = row.createCell(cellnum1++);
+                cell.setCellStyle(HelperExcel.textStyle(workbook));
+                cell.setCellValue(element.getCodigoAglutinacao());
+
+                cell = row.createCell(cellnum1++);
+                cell.setCellStyle(HelperExcel.textStyle(workbook));
+                cell.setCellValue(element.getNivelAglutinacao());
+
+                cell = row.createCell(cellnum1++);
+                cell.setCellStyle(HelperExcel.textStyle(workbook));
+                cell.setCellValue(element.getIndiGrupoBalanco());
+
+                cell = row.createCell(cellnum1++);
+                cell.setCellStyle(HelperExcel.textStyle(workbook));
+                cell.setCellValue(element.getDescricao());
+
+                cell = row.createCell(cellnum1++);
+                cell.setCellStyle(HelperExcel.numberStyle(workbook));
+                cell.setCellValue(element.getValorTotal().doubleValue());
+
+                cell = row.createCell(cellnum1++);
+                cell.setCellStyle(HelperExcel.textStyle(workbook));
+                cell.setCellValue(element.getIndiSituacaoSaldo());
+            }
+        });
+        return workbook;
+    }
+
     public static Set<ECD000> extractDataEmpresas(File diretorio, String[] RESTRICAO_ARQUIVOS) {
 
         File[] f1 = diretorio.listFiles();
@@ -363,15 +457,7 @@ public class HelperECD {
             Collection<File> files = FileUtils.listFiles(f, RESTRICAO_ARQUIVOS, true);
             Stream<File> stream = files.parallelStream();
 
-            stream.forEachOrdered(file -> {
-                try {
-
-                    lines.addAll(FileUtils.readLines(file, StandardCharsets.ISO_8859_1.name()));
-
-                } catch (IOException ex) {
-                    Logger.getLogger(FXMLController.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            });
+            extractLines(lines, stream);
 
             String[] data = lines.get(0).split("\\|");
             ECD000 empresa = extractI150(data);
@@ -394,6 +480,18 @@ public class HelperECD {
         return empresas;
     }
 
+    private static void extractLines(List<String> lines, Stream<File> stream) {
+        stream.forEachOrdered(file -> {
+            try {
+
+                lines.addAll(FileUtils.readLines(file, StandardCharsets.ISO_8859_1.name()));
+
+            } catch (IOException ex) {
+                Logger.getLogger(FXMLController.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        });
+    }
+
     private static Set<J100> extractJ100(List<String> lines) {
         final String FILTER_J100 = "J100";
         Comparator<J100> comparator = (c1, c2) -> c1.getCodigoAglutinacao().compareTo(c2.getCodigoAglutinacao());
@@ -402,7 +500,6 @@ public class HelperECD {
                 .map(s -> formatData(s))
                 .map(i -> builderJ100(i))
                 .collect(Collectors.toCollection(() -> new TreeSet<J100>(comparator)));
-
     }
 
     private static J100 builderJ100(String[] i) {

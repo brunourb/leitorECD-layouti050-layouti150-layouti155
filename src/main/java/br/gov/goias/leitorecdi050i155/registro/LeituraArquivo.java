@@ -6,7 +6,9 @@
 package br.gov.goias.leitorecdi050i155.registro;
 
 import br.gov.goias.leitorecdi050i155.util.HelperECD;
+import br.gov.goias.leitorecdi050i155.util.HelperExcel;
 import org.apache.commons.io.FileUtils;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 
 import java.io.File;
 import java.math.BigDecimal;
@@ -28,33 +30,41 @@ public class LeituraArquivo {
         System.out.printf("The size of directory is: %.2f megabytes\n", (double) dirSizeB / FileUtils.ONE_MB);
 
         final String[] RESTRICAO_ARQUIVOS = {"txt"};
-        empresas = HelperECD.extractDataEmpresas(diretorio, RESTRICAO_ARQUIVOS);
 
-        Stream<ECD000> e = empresas.parallelStream();
-        e.forEachOrdered(e1 -> {
-            System.out.println(e1.cnpj);
-            System.out.println(e1.ie);
-            System.out.println(e1.nomeEmpresa);
-            System.out.println(e1.codigoMunicipioIBGE);
-            System.out.println(e1.dataInicial);
-            System.out.println(e1.dataFinal);
-            System.out.println(e1.im);
-            System.out.println(e1.uf);
-            e1.i050s.stream().forEach(r->{
-//                r.recursiveSubContasValorAcumulado();
-                System.out.printf("\n\n%s\n", r.getNomeConta());
-                BigDecimal saldo = r.recursiveWalkSubContasValues();
-                if(r.recursiveWalkSubContasValues()!=BigDecimal.ZERO){
-                    System.out.printf("%s %s %.2f \n",
-                            r.getNivelConta(),
-//                        r.getCodigoContaAnalitica(),
-//                        r.getCodigoContaSintetica(),
-                            r.getNomeConta(),
-                            saldo.doubleValue()
-                    );
-                }
-            });
-            });
+//        empresas = HelperECD.extractDataEmpresas(diretorio, RESTRICAO_ARQUIVOS);
+
+        HSSFWorkbook workbook = HelperECD.extractDataJ100Empresas(diretorio, RESTRICAO_ARQUIVOS);
+        HelperExcel.createFile(workbook,UUID.randomUUID().toString().substring(0,10));
+
+
+
+
+
+//        Stream<ECD000> e = empresas.parallelStream();
+//        e.forEachOrdered(e1 -> {
+//            System.out.println(e1.cnpj);
+//            System.out.println(e1.ie);
+//            System.out.println(e1.nomeEmpresa);
+//            System.out.println(e1.codigoMunicipioIBGE);
+//            System.out.println(e1.dataInicial);
+//            System.out.println(e1.dataFinal);
+//            System.out.println(e1.im);
+//            System.out.println(e1.uf);
+//            e1.i050s.stream().forEach(r->{
+////                r.recursiveSubContasValorAcumulado();
+//                System.out.printf("\n\n%s\n", r.getNomeConta());
+//                BigDecimal saldo = r.recursiveWalkSubContasValues();
+//                if(r.recursiveWalkSubContasValues()!=BigDecimal.ZERO){
+//                    System.out.printf("%s %s %.2f \n",
+//                            r.getNivelConta(),
+////                        r.getCodigoContaAnalitica(),
+////                        r.getCodigoContaSintetica(),
+//                            r.getNomeConta(),
+//                            saldo.doubleValue()
+//                    );
+//                }
+//            });
+//            });
     }
 }
 
