@@ -24,8 +24,6 @@ public class LeituraArquivo {
     public static void main(String[] args) {
         File diretorio = new File("D:\\ecd");
 
-        Set<ECD000> empresas = new HashSet<>();
-
         long dirSizeB = FileUtils.sizeOfDirectory(diretorio);
         System.out.printf("The size of directory is: %.2f megabytes\n", (double) dirSizeB / FileUtils.ONE_MB);
 
@@ -33,7 +31,20 @@ public class LeituraArquivo {
 
 //        empresas = HelperECD.extractDataEmpresas(diretorio, RESTRICAO_ARQUIVOS);
 
-        HSSFWorkbook workbook = HelperECD.extractDataJ100Empresas(diretorio, RESTRICAO_ARQUIVOS);
+        Set<ECD000> empresas = HelperECD.extractDataJ100Empresas(diretorio, RESTRICAO_ARQUIVOS);
+
+        // Criando o arquivo e uma planilha chamada "Product"
+        HSSFWorkbook workbook = new HSSFWorkbook();
+        HelperECD.extractDataEmpresasSheetNivel1(workbook,empresas);
+        empresas.stream().forEachOrdered(e->{
+
+//            HelperECD.extractDataEmpresasSheetNivel2(workbook,e);
+//            HelperECD.extractDataEmpresasSheetNivel3(workbook,e);
+//            HelperECD.extractDataEmpresasSheetNivel4(workbook,e);
+//            HelperECD.extractDataEmpresasSheetNivel5(workbook,e);
+            HelperECD.extractDataJ100EmpresasSheet(workbook,e);
+        });
+
         HelperExcel.createFile(workbook,UUID.randomUUID().toString().substring(0,10));
 
 

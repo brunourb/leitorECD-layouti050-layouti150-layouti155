@@ -17,7 +17,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.jar.JarEntry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -348,9 +348,83 @@ public class HelperECD {
 
     }
 
-    public static HSSFWorkbook extractDataJ100Empresas(File diretorio, String[] RESTRICAO_ARQUIVOS) {
+    public static void extractDataJ100EmpresasSheet(HSSFWorkbook workbook, ECD000 empresa){
+        // Criando o arquivo e uma planilha chamada "Product"
+        HSSFSheet sheet = workbook.createSheet(empresa.getNomeEmpresa().replaceAll("[^a-zA-Z0-9 ]",""));
+        // Definindo alguns padroes de layout
+        sheet.setDefaultColumnWidth(10);
+        sheet.setDefaultRowHeight((short)500);
 
-        HSSFWorkbook workbook = new HSSFWorkbook();
+        int rownum = 0;
+        int cellnum = 0;
+        Cell cell = null;
+        Row row;
+
+        // Configurando Header
+        sheet.createFreezePane(0, 1); // this will freeze first row
+        sheet.autoSizeColumn(rownum);
+
+        row = sheet.createRow(rownum++);
+        cell = row.createCell(cellnum++);
+        cell.setCellStyle(HelperExcel.headerStyle(workbook));
+        cell.setCellValue("codigoAglutinacao");
+
+        cell = row.createCell(cellnum++);
+        cell.setCellStyle(HelperExcel.headerStyle(workbook));
+        cell.setCellValue("nivelAglutinacao");
+
+        cell = row.createCell(cellnum++);
+        cell.setCellStyle(HelperExcel.headerStyle(workbook));
+        cell.setCellValue("indiGrupoBalanco");
+
+        cell = row.createCell(cellnum++);
+        cell.setCellStyle(HelperExcel.headerStyle(workbook));
+        cell.setCellValue("descricao");
+
+        cell = row.createCell(cellnum++);
+        cell.setCellStyle(HelperExcel.headerStyle(workbook));
+        cell.setCellValue("valorTotal");
+
+        cell = row.createCell(cellnum++);
+        cell.setCellStyle(HelperExcel.headerStyle(workbook));
+        cell.setCellValue("indiSituacaoSaldo");
+
+        int rownum1 = 1;
+        Iterator<J100> itr = empresa.getI100s().iterator();
+        while(itr.hasNext()){
+            int cellnum1 = 0;
+            J100 element = itr.next();
+
+            sheet.autoSizeColumn(rownum1);
+            row = sheet.createRow(rownum1++);
+            cell = row.createCell(cellnum1++);
+            cell.setCellStyle(HelperExcel.textStyle(workbook));
+            cell.setCellValue(element.getCodigoAglutinacao());
+
+            cell = row.createCell(cellnum1++);
+            cell.setCellStyle(HelperExcel.textStyle(workbook));
+            cell.setCellValue(element.getNivelAglutinacao());
+
+            cell = row.createCell(cellnum1++);
+            cell.setCellStyle(HelperExcel.textStyle(workbook));
+            cell.setCellValue(element.getIndiGrupoBalanco());
+
+            cell = row.createCell(cellnum1++);
+            cell.setCellStyle(HelperExcel.textStyle(workbook));
+            cell.setCellValue(element.getDescricao());
+
+            cell = row.createCell(cellnum1++);
+            cell.setCellStyle(HelperExcel.numberStyle(workbook));
+            cell.setCellValue(element.getValorTotal().doubleValue());
+
+            cell = row.createCell(cellnum1++);
+            cell.setCellStyle(HelperExcel.textStyle(workbook));
+            cell.setCellValue(element.getIndiSituacaoSaldo());
+        }
+    }
+
+    public static Set<ECD000> extractDataJ100Empresas(File diretorio, String[] RESTRICAO_ARQUIVOS) {
+        Set<ECD000> empresas = new HashSet<>();
 
         File[] f1 = diretorio.listFiles();
         final int[] index = {0};
@@ -362,83 +436,14 @@ public class HelperECD {
             extractLines(lines, stream);
             String[] data = lines.get(0).split("\\|");
             ECD000 empresa = extractI150(data);
+            empresa.setI100s(new ArrayList<>());
             Set<J100> j100 = extractJ100(lines);
 
-            // Criando o arquivo e uma planilha chamada "Product"
-            HSSFSheet sheet = workbook.createSheet(UUID.randomUUID().toString());
-            // Definindo alguns padroes de layout
-            sheet.setDefaultColumnWidth(10);
-            sheet.setDefaultRowHeight((short)500);
-
-            int rownum = 0;
-            int cellnum = 0;
-            Cell cell = null;
-            Row row;
-
-            // Configurando Header
-            sheet.createFreezePane(0, 1); // this will freeze first row
-            sheet.autoSizeColumn(rownum);
-
-            row = sheet.createRow(rownum++);
-            cell = row.createCell(cellnum++);
-            cell.setCellStyle(HelperExcel.headerStyle(workbook));
-            cell.setCellValue("codigoAglutinacao");
-
-            cell = row.createCell(cellnum++);
-            cell.setCellStyle(HelperExcel.headerStyle(workbook));
-            cell.setCellValue("nivelAglutinacao");
-
-            cell = row.createCell(cellnum++);
-            cell.setCellStyle(HelperExcel.headerStyle(workbook));
-            cell.setCellValue("indiGrupoBalanco");
-
-            cell = row.createCell(cellnum++);
-            cell.setCellStyle(HelperExcel.headerStyle(workbook));
-            cell.setCellValue("descricao");
-
-            cell = row.createCell(cellnum++);
-            cell.setCellStyle(HelperExcel.headerStyle(workbook));
-            cell.setCellValue("valorTotal");
-
-            cell = row.createCell(cellnum++);
-            cell.setCellStyle(HelperExcel.headerStyle(workbook));
-            cell.setCellValue("indiSituacaoSaldo");
-
-            int rownum1 = 1;
-            Iterator<J100> itr = j100.iterator();
-            int para = 0;
-            while(itr.hasNext()){
-                int cellnum1 = 0;
-                J100 element = itr.next();
-
-                sheet.autoSizeColumn(rownum1);
-                row = sheet.createRow(rownum1++);
-                cell = row.createCell(cellnum1++);
-                cell.setCellStyle(HelperExcel.textStyle(workbook));
-                cell.setCellValue(element.getCodigoAglutinacao());
-
-                cell = row.createCell(cellnum1++);
-                cell.setCellStyle(HelperExcel.textStyle(workbook));
-                cell.setCellValue(element.getNivelAglutinacao());
-
-                cell = row.createCell(cellnum1++);
-                cell.setCellStyle(HelperExcel.textStyle(workbook));
-                cell.setCellValue(element.getIndiGrupoBalanco());
-
-                cell = row.createCell(cellnum1++);
-                cell.setCellStyle(HelperExcel.textStyle(workbook));
-                cell.setCellValue(element.getDescricao());
-
-                cell = row.createCell(cellnum1++);
-                cell.setCellStyle(HelperExcel.numberStyle(workbook));
-                cell.setCellValue(element.getValorTotal().doubleValue());
-
-                cell = row.createCell(cellnum1++);
-                cell.setCellStyle(HelperExcel.textStyle(workbook));
-                cell.setCellValue(element.getIndiSituacaoSaldo());
-            }
+            empresa.getI100s().addAll(j100);
+            empresas.add(empresa);
         });
-        return workbook;
+
+        return empresas;
     }
 
     public static Set<ECD000> extractDataEmpresas(File diretorio, String[] RESTRICAO_ARQUIVOS) {
@@ -560,5 +565,74 @@ public class HelperECD {
         cell.setCellStyle(headerStyle);
         cell.setCellValue("Price");
 
+    }
+
+    public static void extractDataEmpresasSheetNivel1(HSSFWorkbook workbook, Set<ECD000> empresas) {
+
+        // Criando o arquivo e uma planilha chamada "Product"
+        HSSFSheet sheet = workbook.createSheet("J100 nível 1");
+        // Definindo alguns padroes de layout
+        sheet.setDefaultColumnWidth(10);
+        sheet.setDefaultRowHeight((short)500);
+
+        int rownum = 1;
+        int rownumConta=1;
+        int cellnum = 0;
+        Cell cell = null;
+        Row row;
+        // Configurando Header
+        sheet.createFreezePane(0, 1); // this will freeze first row
+        sheet.createFreezePane(1, 1); // this will freeze first column
+
+        Iterator<ECD000> ite = empresas.iterator();
+        while(ite.hasNext()){
+
+            ECD000 empresa = ite.next();
+
+            //CNPJ
+            sheet.autoSizeColumn(rownum);
+            row = sheet.createRow(rownum++);
+            cell = row.createCell(0);
+            cell.setCellStyle(HelperExcel.textStyle(workbook));
+            cell.setCellValue(empresa.getCnpj());
+
+            //            List<J100> lista =  empresa.getI100s().stream().filter(i->i.getNivelAglutinacao().equals("1")).collect(Collectors.toList());
+//            int tamanho = 1;
+//            Iterator<J100> it = lista.iterator();
+//            sheet.autoSizeColumn(rownum);
+//            row = sheet.createRow(rownum-1);
+//            while(it.hasNext() && tamanho<=lista.size()+1){
+//                J100 j100 = it.next();
+//                cell = row.createCell(tamanho++);
+////                cell.setCellStyle(HelperExcel.textStyle(workbook));
+//                cell.setCellValue(j100.getDescricao());
+//            }
+
+            //NOME EMPRESA
+            sheet.autoSizeColumn(rownum);
+            row = sheet.createRow(rownum++);
+            cell = row.createCell(0);
+            cell.setCellStyle(HelperExcel.textStyle(workbook));
+            cell.setCellValue(empresa.getNomeEmpresa().replaceAll("[^a-zA-Z0-9 ]",""));
+        }
+    }
+
+    public static void extractDataEmpresasSheetNivel2(HSSFWorkbook workbook, ECD000 e) {
+
+        HSSFSheet sheet = workbook.createSheet("J100 nível 2");
+    }
+
+    public static void extractDataEmpresasSheetNivel3(HSSFWorkbook workbook, ECD000 e) {
+
+        HSSFSheet sheet = workbook.createSheet("J100 nível 3");
+    }
+
+    public static void extractDataEmpresasSheetNivel4(HSSFWorkbook workbook, ECD000 e) {
+
+        HSSFSheet sheet = workbook.createSheet("J100 nível 4");
+    }
+
+    public static void extractDataEmpresasSheetNivel5(HSSFWorkbook workbook, ECD000 e) {
+        HSSFSheet sheet = workbook.createSheet("J100 nível 5");
     }
 }
