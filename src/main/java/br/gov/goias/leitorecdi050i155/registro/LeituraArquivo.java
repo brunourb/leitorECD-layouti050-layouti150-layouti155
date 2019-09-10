@@ -35,13 +35,12 @@ public class LeituraArquivo {
 
         // Criando o arquivo e uma planilha chamada "Product"
         HSSFWorkbook workbook = new HSSFWorkbook();
-        HelperECD.extractDataEmpresasSheetNivel1(workbook,empresas);
+        HelperECD.extractDataEmpresasSheetNivel(workbook,empresas,"1");
+        HelperECD.extractDataEmpresasSheetNivel(workbook,empresas,"2");
+        HelperECD.extractDataEmpresasSheetNivel(workbook,empresas,"3");
+        HelperECD.extractDataEmpresasSheetNivel(workbook,empresas,"4");
+//        HelperECD.extractDataEmpresasSheetNivel(workbook,empresas,"5");
         empresas.stream().forEachOrdered(e->{
-
-//            HelperECD.extractDataEmpresasSheetNivel2(workbook,e);
-//            HelperECD.extractDataEmpresasSheetNivel3(workbook,e);
-//            HelperECD.extractDataEmpresasSheetNivel4(workbook,e);
-//            HelperECD.extractDataEmpresasSheetNivel5(workbook,e);
             HelperECD.extractDataJ100EmpresasSheet(workbook,e);
         });
 

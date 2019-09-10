@@ -6,9 +6,7 @@ import br.gov.goias.leitorecdi050i155.registro.I050;
 import br.gov.goias.leitorecdi050i155.registro.I150I155;
 import br.gov.goias.leitorecdi050i155.registro.J100;
 import org.apache.commons.io.FileUtils;
-import org.apache.poi.hssf.usermodel.HSSFDataFormat;
-import org.apache.poi.hssf.usermodel.HSSFSheet;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.hssf.usermodel.*;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 
@@ -567,27 +565,27 @@ public class HelperECD {
 
     }
 
-    public static void extractDataEmpresasSheetNivel1(HSSFWorkbook workbook, Set<ECD000> empresas) {
+    public static void extractDataEmpresasSheetNivel(HSSFWorkbook workbook, Set<ECD000> empresas, String nivel) {
 
         // Criando o arquivo e uma planilha chamada "Product"
-        HSSFSheet sheet = workbook.createSheet("J100 nível 1");
+        HSSFSheet sheet = workbook.createSheet(String.format("J100 nível %s",nivel));
         // Definindo alguns padroes de layout
-        sheet.setDefaultColumnWidth(10);
+        sheet.setDefaultColumnWidth(30);
         sheet.setDefaultRowHeight((short)500);
 
-        int rownum = 1;
-        int rownumConta=1;
+        int rownum = 0;
+        int rownumConta=0;
         int cellnum = 0;
         Cell cell = null;
         Row row;
         // Configurando Header
-        sheet.createFreezePane(0, 1); // this will freeze first row
-        sheet.createFreezePane(1, 1); // this will freeze first column
+        sheet.createFreezePane(1, 0); // this will freeze first row
 
         Iterator<ECD000> ite = empresas.iterator();
         while(ite.hasNext()){
 
             ECD000 empresa = ite.next();
+
 
             //CNPJ
             sheet.autoSizeColumn(rownum);
@@ -596,24 +594,33 @@ public class HelperECD {
             cell.setCellStyle(HelperExcel.textStyle(workbook));
             cell.setCellValue(empresa.getCnpj());
 
-            //            List<J100> lista =  empresa.getI100s().stream().filter(i->i.getNivelAglutinacao().equals("1")).collect(Collectors.toList());
-//            int tamanho = 1;
-//            Iterator<J100> it = lista.iterator();
-//            sheet.autoSizeColumn(rownum);
-//            row = sheet.createRow(rownum-1);
-//            while(it.hasNext() && tamanho<=lista.size()+1){
-//                J100 j100 = it.next();
-//                cell = row.createCell(tamanho++);
-////                cell.setCellStyle(HelperExcel.textStyle(workbook));
-//                cell.setCellValue(j100.getDescricao());
-//            }
+            List<J100> lista =  empresa.getI100s().stream().filter(i->i.getNivelAglutinacao().equals(nivel)).collect(Collectors.toList());
+            int tamanho = 1;
+            Iterator<J100> it = lista.iterator();
+            sheet.autoSizeColumn(rownum);
+            while(it.hasNext() && tamanho<=lista.size()+1){
+                J100 j100 = it.next();
+                cell = row.createCell(tamanho++);
+//                cell.setCellStyle(HelperExcel.headerStyle(workbook));
+                cell.setCellValue(j100.getDescricao());
+            }
 
             //NOME EMPRESA
-            sheet.autoSizeColumn(rownum);
             row = sheet.createRow(rownum++);
+            sheet.autoSizeColumn(rownum);
             cell = row.createCell(0);
             cell.setCellStyle(HelperExcel.textStyle(workbook));
             cell.setCellValue(empresa.getNomeEmpresa().replaceAll("[^a-zA-Z0-9 ]",""));
+
+            tamanho = 1;
+            it = lista.iterator();
+            while(it.hasNext() && tamanho<=lista.size()+1){
+                J100 j100 = it.next();
+                cell = row.createCell(tamanho++);
+                cell.setCellValue(j100.getValorTotal().doubleValue());
+            }
+
+            row = sheet.createRow(rownum++);
         }
     }
 
