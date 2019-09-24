@@ -33,6 +33,7 @@ public class LeituraArquivo {
 
         // Criando o arquivo e uma planilha chamada "Product"
         HSSFWorkbook workbook = new HSSFWorkbook();
+        HelperECD.extracDataEmpresasSheelTotalNiveisConta(workbook,empresas);
         HelperECD.extractDataEmpresasSheetNivel(workbook,empresas,"1");
         HelperECD.extractDataEmpresasSheetNivel(workbook,empresas,"2");
         HelperECD.extractDataEmpresasSheetNivel(workbook,empresas,"3");

@@ -565,6 +565,79 @@ public class HelperECD {
 
     }
 
+    public static void extracDataEmpresasSheelTotalNiveisConta(HSSFWorkbook workbook, Set<ECD000> empresas){
+
+        String[] niveis = {"1","2","3","4","5"};
+
+        // Criando o arquivo e uma planilha chamada "Product"
+        HSSFSheet sheet = workbook.createSheet("Empresas total contas");
+        // Definindo alguns padroes de layout
+        sheet.setDefaultColumnWidth(30);
+        sheet.setDefaultRowHeight((short)500);
+
+        final int[] rownum = {0};
+        int rownumConta=0;
+        int cellnum = 0;
+        final Cell[] cell = {null};
+        final Row[] row = new Row[1];
+        // Configurando Header
+        sheet.createFreezePane(1, 0); // this will freeze first row
+
+        // Configurando Header
+        sheet.createFreezePane(0, 1); // this will freeze first row
+        sheet.autoSizeColumn(rownum[0]);
+
+        row[0] = sheet.createRow(rownum[0]++);
+        cell[0] = row[0].createCell(cellnum++);
+        cell[0].setCellStyle(HelperExcel.headerStyle(workbook));
+        cell[0].setCellValue("EMPRESA");
+
+        cell[0] = row[0].createCell(cellnum++);
+        cell[0].setCellStyle(HelperExcel.headerStyle(workbook));
+        cell[0].setCellValue("NÍVEL 1");
+
+        cell[0] = row[0].createCell(cellnum++);
+        cell[0].setCellStyle(HelperExcel.headerStyle(workbook));
+        cell[0].setCellValue("NÍVEL 2");
+
+        cell[0] = row[0].createCell(cellnum++);
+        cell[0].setCellStyle(HelperExcel.headerStyle(workbook));
+        cell[0].setCellValue("NÍVEL 3");
+
+        cell[0] = row[0].createCell(cellnum++);
+        cell[0].setCellStyle(HelperExcel.headerStyle(workbook));
+        cell[0].setCellValue("NÍVEL 4");
+
+        cell[0] = row[0].createCell(cellnum++);
+        cell[0].setCellStyle(HelperExcel.headerStyle(workbook));
+        cell[0].setCellValue("NÍVEL 5");
+
+        final int[] tamanho = {1};
+        empresas.stream().forEach(e->{
+
+            cell[0] = row[0].createCell(tamanho[0]++);
+            cell[0].setCellValue(e.getNomeEmpresa());
+//
+//            System.out.println(e.getNomeEmpresa());
+//            System.out.println(e.getDataInicial());
+//            System.out.println(e.getDataFinal());
+            Arrays.stream(niveis).forEach(nivel->{
+
+                cell[0] = row[0].createCell(tamanho[0]++);
+                cell[0].setCellValue(e.getI100s().stream().filter(f1 -> f1.getNivelAglutinacao().equals(nivel)).count());
+//                String dados = String.format("Nível: %s | %s",nivel, e.getI100s().stream().filter(f1 -> f1.getNivelAglutinacao().equals(nivel)).count());
+//                System.out.println(dados);
+            });
+        });
+
+//        Iterator<ECD000> ite = empresas.iterator();
+//
+//        Stream<Long> a = empresas.stream().map(m -> m.getI100s().stream().filter(i -> i.getNivelAglutinacao().equals(niveis)).count());
+//        a.forEach(a1->{
+//            System.out.println(a1.doubleValue());
+//        });
+    }
+
     public static void extractDataEmpresasSheetNivel(HSSFWorkbook workbook, Set<ECD000> empresas, String nivel) {
 
         // Criando o arquivo e uma planilha chamada "Product"
@@ -582,10 +655,15 @@ public class HelperECD {
         sheet.createFreezePane(1, 0); // this will freeze first row
 
         Iterator<ECD000> ite = empresas.iterator();
+
+        Stream<Long> a = empresas.stream().map(m -> m.getI100s().stream().filter(i -> i.getNivelAglutinacao().equals(nivel)).count());
+        a.forEach(a1->{
+            System.out.println(a1.doubleValue());
+        });
+
         while(ite.hasNext()){
 
             ECD000 empresa = ite.next();
-
 
             //CNPJ
             sheet.autoSizeColumn(rownum);
@@ -601,8 +679,7 @@ public class HelperECD {
             while(it.hasNext() && tamanho<=lista.size()+1){
                 J100 j100 = it.next();
                 cell = row.createCell(tamanho++);
-//                cell.setCellStyle(HelperExcel.headerStyle(workbook));
-                cell.setCellValue(j100.getDescricao());
+                cell.setCellValue(j100.getCodigoAglutinacao().replaceAll("0","").replaceAll("\\.",""));
             }
 
             //NOME EMPRESA
@@ -622,24 +699,5 @@ public class HelperECD {
 
             row = sheet.createRow(rownum++);
         }
-    }
-
-    public static void extractDataEmpresasSheetNivel2(HSSFWorkbook workbook, ECD000 e) {
-
-        HSSFSheet sheet = workbook.createSheet("J100 nível 2");
-    }
-
-    public static void extractDataEmpresasSheetNivel3(HSSFWorkbook workbook, ECD000 e) {
-
-        HSSFSheet sheet = workbook.createSheet("J100 nível 3");
-    }
-
-    public static void extractDataEmpresasSheetNivel4(HSSFWorkbook workbook, ECD000 e) {
-
-        HSSFSheet sheet = workbook.createSheet("J100 nível 4");
-    }
-
-    public static void extractDataEmpresasSheetNivel5(HSSFWorkbook workbook, ECD000 e) {
-        HSSFSheet sheet = workbook.createSheet("J100 nível 5");
     }
 }
