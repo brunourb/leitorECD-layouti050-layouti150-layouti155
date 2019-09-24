@@ -33,11 +33,11 @@ public class LeituraArquivo {
 
         // Criando o arquivo e uma planilha chamada "Product"
         HSSFWorkbook workbook = new HSSFWorkbook();
-        HelperECD.extracDataEmpresasSheelTotalNiveisConta(workbook,empresas);
-        HelperECD.extractDataEmpresasSheetNivel(workbook,empresas,"1");
-        HelperECD.extractDataEmpresasSheetNivel(workbook,empresas,"2");
-        HelperECD.extractDataEmpresasSheetNivel(workbook,empresas,"3");
-        HelperECD.extractDataEmpresasSheetNivel(workbook,empresas,"4");
+        HashMap<String, TreeSet<String>> map = HelperECD.extracDataEmpresasSheelTotalNiveisConta(workbook, empresas);
+        HelperECD.extractDataEmpresasSheetNivel(workbook,empresas,"1", map);
+        HelperECD.extractDataEmpresasSheetNivel(workbook,empresas,"2", map);
+        HelperECD.extractDataEmpresasSheetNivel(workbook,empresas,"3", map);
+        HelperECD.extractDataEmpresasSheetNivel(workbook,empresas,"4", map);
 //        HelperECD.extractDataEmpresasSheetNivel(workbook,empresas,"5");
         empresas.stream().forEachOrdered(e->{
             HelperECD.extractDataJ100EmpresasSheet(workbook,e);
