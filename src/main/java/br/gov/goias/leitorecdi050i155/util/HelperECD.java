@@ -502,18 +502,22 @@ public class HelperECD {
         return lines.stream().filter(l -> l.contains(FILTER_J100))
                 .map(s -> formatData(s))
                 .map(i -> builderJ100(i))
+                .filter(f->f!=null)
                 .collect(Collectors.toCollection(() -> new TreeSet<J100>(comparator)));
     }
 
     private static J100 builderJ100(String[] i) {
-        return J100.builder()
-                .codigoAglutinacao(i[2])
-                .nivelAglutinacao(i[3])
-                .indiGrupoBalanco(i[4])
-                .descricao(i[5])
-                .valorTotal(new BigDecimal(i[6].replace(",",".")))
-                .indiSituacaoSaldo(i[7])
-                .build();
+        if(i.length>7){
+            return J100.builder()
+                    .codigoAglutinacao(i[2])
+                    .nivelAglutinacao(i[3])
+                    .indiGrupoBalanco(i[4])
+                    .descricao(i[5])
+                    .valorTotal(new BigDecimal(i[6].replace(",",".")))
+                    .indiSituacaoSaldo(i[7])
+                    .build();
+        }
+        return null;
     }
 
 
@@ -565,6 +569,10 @@ public class HelperECD {
 
     }
 
+    public static String cleanData(String data){
+        return data.replaceAll("0","").replaceAll("\\.","").replaceAll("_","").replaceAll("-","");
+    }
+
     public static HashMap<String, TreeSet<String>> extracDataEmpresasSheelTotalNiveisConta(HSSFWorkbook workbook, Set<ECD000> empresas){
 
         Comparator<J100> comparator = (c1, c2) -> c1.getCodigoAglutinacao().replaceAll("0","").replaceAll("\\.","").compareTo(c2.getCodigoAglutinacao().replaceAll("0","").replaceAll("\\.",""));
@@ -586,12 +594,15 @@ public class HelperECD {
         final Row[] row = new Row[1];
         // Configurando Header
         sheet.createFreezePane(1, 0); // this will freeze first row
-
-        // Configurando Header
         sheet.createFreezePane(0, 1); // this will freeze first row
         sheet.autoSizeColumn(rownum[0]);
 
         row[0] = sheet.createRow(rownum[0]++);
+
+        cell[0] = row[0].createCell(cellnum++);
+        cell[0].setCellStyle(HelperExcel.headerStyle(workbook));
+        cell[0].setCellValue("CNPJ");
+
         cell[0] = row[0].createCell(cellnum++);
         cell[0].setCellStyle(HelperExcel.headerStyle(workbook));
         cell[0].setCellValue("EMPRESA");
@@ -627,25 +638,30 @@ public class HelperECD {
         empresas.stream().forEach(e->{
 
             row[0] = sheet.createRow(rownum[0]++);
+            sheet.createRow(rownum[0]);
+
             cell[0] = row[0].createCell(0);
-            cell[0].setCellValue(e.getNomeEmpresa());
+            cell[0].setCellValue(e.getCnpj());
 
             cell[0] = row[0].createCell(1);
-            cell[0].setCellValue(e.getDataInicial());
+            cell[0].setCellValue(e.getNomeEmpresa());
 
             cell[0] = row[0].createCell(2);
+            cell[0].setCellValue(e.getDataInicial());
+
+            cell[0] = row[0].createCell(3);
             cell[0].setCellValue(e.getDataFinal());
 
-            final int[] tamanho = {3};
+            final int[] tamanho = {4};
             Arrays.stream(niveis).forEach(nivel->{
                 cell[0] = row[0].createCell(tamanho[0]++);
                 cell[0].setCellValue(e.getI100s().stream().filter(f1 -> f1.getNivelAglutinacao().equals(nivel)).count());
 
                 if(map.containsKey(nivel)){
-                    map.get(nivel).addAll(e.getI100s().stream().sorted(comparator).filter(f1 -> f1.getNivelAglutinacao().equals(nivel)).map(m->m.getCodigoAglutinacao().replaceAll("0","").replaceAll("\\.","")).collect(Collectors.toList()));
+                    map.get(nivel).addAll(e.getI100s().stream().filter(f1 -> f1.limitNivel(nivel)).map(m-> cleanData(m.getCodigoAglutinacao())).collect(Collectors.toList()));
                 }
                 else{
-                    List<String> lista = e.getI100s().stream().sorted(comparator).filter(f1 -> f1.getNivelAglutinacao().equals(nivel)).map(m -> m.getCodigoAglutinacao().replaceAll("0", "").replaceAll("\\.", "")).collect(Collectors.toList());
+                    List<String> lista = e.getI100s().stream().filter(f1 -> f1.limitNivel(nivel)).map(m -> cleanData(m.getCodigoAglutinacao())).collect(Collectors.toList());
                     map.put(nivel, new TreeSet<String>(lista));
                 }
 
@@ -655,7 +671,22 @@ public class HelperECD {
         return map;
     }
 
-    public static void extractDataEmpresasSheetNivel(HSSFWorkbook workbook, Set<ECD000> empresas, String nivel, HashMap<String, TreeSet<String>> map) {
+    public static boolean limitNivelConta(String nivel, String codigo) {
+        switch (Integer.valueOf(nivel)){
+            case 1:
+                return codigo.length() == 2;
+            case 2:
+                return codigo.length() == 3;
+            case 3:
+                return codigo.length() == 4;
+            case 4:
+                return codigo.length() == 5;
+            default:
+                return false;
+        }
+    }
+
+    public static void extractDataEmpresasSheetNivel(HSSFWorkbook workbook, Set<ECD000> empresas, String nivel, Integer quantidade, HashMap<String, TreeSet<String>> map) {
 
         // Criando o arquivo e uma planilha chamada "Product"
         HSSFSheet sheet = workbook.createSheet(String.format("J100 nível %s",nivel));
@@ -665,45 +696,74 @@ public class HelperECD {
 
         final int[] rownum = {0};
         int rownumConta=0;
-        int cellnum = 0;
+        final int[] cellnum = {0};
         final Cell[] cell = {null};
         final Row[] row = new Row[1];
+
         // Configurando Header
         sheet.createFreezePane(1, 0); // this will freeze first row
+        sheet.createFreezePane(0, 1); // this will freeze first row
+        sheet.autoSizeColumn(rownum[0]);
+
+        row[0] = sheet.createRow(rownum[0]++);
+
+        cell[0] = row[0].createCell(cellnum[0]++);
+        cell[0].setCellStyle(HelperExcel.headerStyle(workbook));
+        cell[0].setCellValue("CNPJ");
+
+        cell[0] = row[0].createCell(cellnum[0]++);
+        cell[0].setCellStyle(HelperExcel.headerStyle(workbook));
+        cell[0].setCellValue("EMPRESA");
+
+        cell[0] = row[0].createCell(cellnum[0]++);
+        cell[0].setCellStyle(HelperExcel.headerStyle(workbook));
+        cell[0].setCellValue("DT.INICIO");
+
+        cell[0] = row[0].createCell(cellnum[0]++);
+        cell[0].setCellStyle(HelperExcel.headerStyle(workbook));
+        cell[0].setCellValue("DT.FINAL");
+
+        //IMPRIMIR HEADER'S COM OS CÓDIGO DAS CONTAS
+        map.get(nivel).forEach(codigoConta->{
+                sheet.autoSizeColumn(rownum[0]);
+                cell[0] = row[0].createCell(cellnum[0]++);
+                cell[0].setCellValue(codigoConta);
+        });
 
         empresas.stream().forEach(e->{
             //CNPJ
             sheet.autoSizeColumn(rownum[0]);
             row[0] = sheet.createRow(rownum[0]++);
+
             cell[0] = row[0].createCell(0);
             cell[0].setCellStyle(HelperExcel.textStyle(workbook));
             cell[0].setCellValue(e.getCnpj());
 
-            AtomicInteger tamanho = new AtomicInteger(1);
-            List<J100> lista =  e.getI100s().stream().filter(i->i.getNivelAglutinacao().equals(nivel)).collect(Collectors.toList());
-            AtomicInteger finalTamanho = tamanho;
-            lista.forEach(j100->{
-                sheet.autoSizeColumn(rownum[0]);
-                cell[0] = row[0].createCell(finalTamanho.getAndIncrement());
-                cell[0].setCellValue(j100.getCodigoAglutinacao().replaceAll("0","").replaceAll("\\.",""));
-            });
-
             //NOME EMPRESA
-            row[0] = sheet.createRow(rownum[0]++);
-            sheet.autoSizeColumn(rownum[0]);
-            cell[0] = row[0].createCell(0);
+            cell[0] = row[0].createCell(1);
             cell[0].setCellStyle(HelperExcel.textStyle(workbook));
             cell[0].setCellValue(e.getNomeEmpresa().replaceAll("[^a-zA-Z0-9 ]",""));
 
-            //IMPRIMIR VALORES DAS CONTAS
-            tamanho = new AtomicInteger(1);
-            AtomicInteger finalTamanho1 = tamanho;
-            lista.forEach(j100 -> {
-                cell[0] = row[0].createCell(finalTamanho1.getAndIncrement());
-                cell[0].setCellValue(j100.getValorTotal().doubleValue());
-            });
+            cell[0] = row[0].createCell(2);
+            cell[0].setCellValue(e.getDataInicial());
 
-            row[0] = sheet.createRow(rownum[0]++);
+            cell[0] = row[0].createCell(3);
+            cell[0].setCellValue(e.getDataFinal());
+
+            AtomicInteger tamanho = new AtomicInteger(1);
+            List<J100> lista =  e.getI100s().stream().filter(i->i.limitNivel(nivel)).collect(Collectors.toList());
+
+            //IMPRIMIR VALORES DAS CONTAS
+            tamanho = new AtomicInteger(4);
+            AtomicInteger finalTamanho1 = tamanho;
+            map.get(nivel).forEach(codigoConta->{
+                cell[0] = row[0].createCell(finalTamanho1.getAndIncrement());
+                lista.stream().forEach(j100 -> {
+                    if(j100.getCodigoAglutinacao().replaceAll("0","").replaceAll("\\.","").equals(codigoConta)){
+                        cell[0].setCellValue(j100.getValorTotal().doubleValue());
+                    }
+                });
+            });
         });
     }
 }
