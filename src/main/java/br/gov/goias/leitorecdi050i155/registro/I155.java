@@ -5,6 +5,7 @@
  */
 package br.gov.goias.leitorecdi050i155.registro;
 
+import lombok.Builder;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -14,9 +15,26 @@ import java.math.BigDecimal;
  * @author admin
  */
 @Data
+@Builder
 public class I155 {
-    
 
-    
-    
+    /**
+     * Código da conta analítica/grupo de contas.
+     */
+    String codigoContaAnalitica;
+
+    String codigoCentroCusto;
+
+    BigDecimal saldoInicial;
+
+    String indSituacaoSaldoInicial;
+
+    BigDecimal valorTotalDebito;
+
+    BigDecimal valorTotalCredito;
+
+    BigDecimal saldoFinal;
+
+    String indSituacaoSaldoFinal;
+
 }

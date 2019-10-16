@@ -7,15 +7,14 @@ package br.gov.goias.leitorecdi050i155.registro;
 
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.text.MaskFormatter;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 /**
  *
@@ -25,6 +24,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 public class ECD000 {
     
     String dataInicial;
@@ -36,8 +36,9 @@ public class ECD000 {
     String codigoMunicipioIBGE;
     String im; 
     
-    List<I050> i050s = new ArrayList<I050>();
-    List<J100> i100s = new ArrayList<>();
+    Set<I050> i050s = new HashSet<>();
+    Set<I150> i150s = new HashSet<>();
+    Set<J100> i100s = new HashSet<>();
     
     public String getCnpj(){
         try {

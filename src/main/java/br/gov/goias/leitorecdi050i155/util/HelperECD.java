@@ -1,10 +1,7 @@
 package br.gov.goias.leitorecdi050i155.util;
 
 import br.gov.goias.leitorecdi050i155.FXMLController;
-import br.gov.goias.leitorecdi050i155.registro.ECD000;
-import br.gov.goias.leitorecdi050i155.registro.I050;
-import br.gov.goias.leitorecdi050i155.registro.I150I155;
-import br.gov.goias.leitorecdi050i155.registro.J100;
+import br.gov.goias.leitorecdi050i155.registro.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.poi.hssf.usermodel.*;
 import org.apache.poi.ss.usermodel.*;
@@ -298,7 +295,7 @@ public class HelperECD {
                 .uf(data[7])
                 .ie(data[8])
                 .codigoMunicipioIBGE(data[9])
-                .i050s(new LinkedList<>())
+                //.i050s(new LinkedList<>())
                 .im(data[10]).build();
     }
 
@@ -342,8 +339,6 @@ public class HelperECD {
                     .map(i -> extractI150(i, subLista))
                     .collect(Collectors.toCollection(() -> new TreeSet<I050>(comparator)));
         }
-
-
     }
 
     public static void extractDataJ100EmpresasSheet(HSSFWorkbook workbook, ECD000 empresa){
@@ -434,7 +429,7 @@ public class HelperECD {
             extractLines(lines, stream);
             String[] data = lines.get(0).split("\\|");
             ECD000 empresa = extractI150(data);
-            empresa.setI100s(new ArrayList<>());
+            empresa.setI100s(null);
             Set<J100> j100 = extractJ100(lines);
 
             empresa.getI100s().addAll(j100);
@@ -519,6 +514,33 @@ public class HelperECD {
         }
         return null;
     }
+
+    private static Set<I155> extractI155(List<String> lines) {
+        final String FILTER_I155 = "I155";
+        return lines.stream().filter(l -> l.contains(FILTER_I155))
+                .map(s -> formatData(s))
+                .map(i -> builderI155(i))
+                .filter(f->f!=null)
+                .collect(Collectors.toCollection(() -> new TreeSet<I155>()));
+    }
+
+    private static I155 builderI155(String[] i) {
+        if(i.length>7){
+            return I155.builder()
+                    .codigoContaAnalitica(i[2])
+                    .codigoCentroCusto(i[3])
+                    .saldoInicial(new BigDecimal(i[4].replace(",",".")))
+                    .indSituacaoSaldoInicial(i[5])
+                    .valorTotalDebito(new BigDecimal(i[6].replace(",",".")))
+                    .valorTotalCredito(new BigDecimal(i[7].replace(",",".")))
+                    .saldoFinal(new BigDecimal(i[8].replace(",",".")))
+                    .indSituacaoSaldoFinal(i[9])
+                    .build();
+        }
+        return null;
+    }
+
+
 
 
     static void createSheet(List<ECD000> empresas) {

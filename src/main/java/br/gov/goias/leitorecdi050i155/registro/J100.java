@@ -16,17 +16,17 @@ import java.util.List;
 @ToString
 public class J100 {
 
-    public String codigoAglutinacao;
+    private String codigoAglutinacao;
 
-    public String nivelAglutinacao;
+    private String nivelAglutinacao;
 
-    public String indiGrupoBalanco;
+    private String indiGrupoBalanco;
 
-    public String descricao;
+    private String descricao;
 
-    public BigDecimal valorTotal;
+    private BigDecimal valorTotal;
 
-    public String indiSituacaoSaldo;
+    private String indiSituacaoSaldo;
 
     public boolean isPresent(Integer quantidade){
         return codigoAglutinacao.length() == 2;
