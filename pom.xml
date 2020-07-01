@@ -27,7 +27,7 @@
         <commons.io.version>2.6</commons.io.version>
         <lombok.version>1.18.8</lombok.version>
         <commons-csv.version>1.7</commons-csv.version>
-        <log4j.version>2.12.1</log4j.version>
+        <log4j.version>2.13.2</log4j.version>
     </properties>
 
     <organization>
