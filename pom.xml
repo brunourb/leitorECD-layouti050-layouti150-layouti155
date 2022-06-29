@@ -23,7 +23,7 @@
         <maven-surefire-plugin.version>2.16</maven-surefire-plugin.version>
         <javafx.version>12.0.2</javafx.version>
         <javafx.maven.plugin.version>8.8.3</javafx.maven.plugin.version>
-        <apache.poi.version>4.1.0</apache.poi.version>
+        <apache.poi.version>4.1.1</apache.poi.version>
         <commons.io.version>2.6</commons.io.version>
         <lombok.version>1.18.8</lombok.version>
         <commons-csv.version>1.7</commons-csv.version>
